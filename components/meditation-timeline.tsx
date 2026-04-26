@@ -4,7 +4,18 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { meditations as fallbackMeditations, type Meditation } from "@/lib/meditations-data";
 import { MeditationCard } from "./meditation-card";
 import { MeditationReader } from "./meditation-reader";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+
+// API meditation type
+interface APIMeditation {
+  id: number;
+  title: string;
+  slug: string;
+  dateString: string;
+  excerpt: string;
+  imageUrl: string | null;
+  link: string;
+}
 
 export function MeditationTimeline() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -14,14 +25,104 @@ export function MeditationTimeline() {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [hoveredTickIndex, setHoveredTickIndex] = useState<number | null>(null);
   const [readerOpen, setReaderOpen] = useState(false);
+  const [apiMeditations, setApiMeditations] = useState<APIMeditation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineTrackRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
 
-  // Use static meditation data sorted by date
-  const sortedMeditations = useMemo(() => {
-    return [...fallbackMeditations].sort((a, b) => b.dateString.localeCompare(a.dateString));
+  // Fetch meditations directly from WordPress REST API (client-side to bypass server restrictions)
+  useEffect(() => {
+    const fetchMeditations = async () => {
+      try {
+        // Fetch directly from WordPress API in the browser
+        const res = await fetch(
+          "https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&_embed=wp:featuredmedia",
+          { mode: "cors" }
+        );
+        
+        if (!res.ok) {
+          throw new Error(`API error: ${res.status}`);
+        }
+        
+        const posts = await res.json();
+        
+        const meditations: APIMeditation[] = posts.map((post: {
+          id: number;
+          date: string;
+          slug: string;
+          title: { rendered: string };
+          excerpt: { rendered: string };
+          link: string;
+          _embedded?: {
+            "wp:featuredmedia"?: Array<{
+              source_url: string;
+              media_details?: {
+                sizes?: {
+                  full?: { source_url: string };
+                  large?: { source_url: string };
+                };
+              };
+            }>;
+          };
+        }) => {
+          // Get the best available image
+          const media = post._embedded?.["wp:featuredmedia"]?.[0];
+          let imageUrl: string | null = null;
+          if (media) {
+            const sizes = media.media_details?.sizes;
+            imageUrl = sizes?.full?.source_url || sizes?.large?.source_url || media.source_url || null;
+          }
+          
+          return {
+            id: post.id,
+            title: post.title.rendered.replace(/<[^>]+>/g, "").replace(/&[^;]+;/g, " ").trim(),
+            slug: post.slug,
+            dateString: post.date.split("T")[0],
+            excerpt: post.excerpt.rendered.replace(/<[^>]+>/g, "").replace(/&[^;]+;/g, " ").trim().slice(0, 300),
+            imageUrl,
+            link: post.link,
+          };
+        });
+        
+        setApiMeditations(meditations);
+      } catch (err) {
+        console.error("[v0] Failed to fetch from WordPress API:", err);
+        // Fall back to local API
+        try {
+          const res = await fetch("/api/meditations");
+          const data = await res.json();
+          if (data.meditations?.length) {
+            setApiMeditations(data.meditations);
+          }
+        } catch {
+          // Will use fallback static data
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchMeditations();
   }, []);
+
+  // Merge API data with fallback, prioritizing API data for images
+  const sortedMeditations: Meditation[] = useMemo(() => {
+    if (apiMeditations.length > 0) {
+      // Use API data directly - it has real images
+      return apiMeditations.map((m, i) => ({
+        id: m.id || i + 1,
+        title: m.title,
+        subtitle: "Meditación con Mataji Shaktiananda",
+        dateString: m.dateString,
+        excerpt: m.excerpt,
+        imageUrl: m.imageUrl || undefined,
+        slug: m.slug,
+      })).sort((a, b) => b.dateString.localeCompare(a.dateString));
+    }
+    // Fallback to static data
+    return [...fallbackMeditations].sort((a, b) => b.dateString.localeCompare(a.dateString));
+  }, [apiMeditations]);
 
   const scrollToIndex = useCallback((index: number) => {
     const clampedIndex = Math.max(0, Math.min(index, sortedMeditations.length - 1));
@@ -168,6 +269,18 @@ export function MeditationTimeline() {
     : 0;
 
   const activeMeditation: Meditation = sortedMeditations[activeIndex];
+
+  // Show loading state
+  if (isLoading && sortedMeditations.length === 0) {
+    return (
+      <div className="relative w-full min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm font-light tracking-wide">Cargando meditaciones...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full min-h-screen bg-background overflow-hidden">

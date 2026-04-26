@@ -46,42 +46,65 @@ export function MeditationReader({
     setContent(null);
     setScrollProgress(0);
 
-    // Try to fetch from API, but fallback quickly to local data
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-
-    fetch(`/api/meditation/${meditation.slug}`, { signal: controller.signal })
-      .then((r) => r.json())
-      .then((data) => {
-        clearTimeout(timeoutId);
-        if (!data.error && data.content && data.content.length > 100) {
-          setContent(data);
-        } else {
-          // Use local data as fallback
-          setContent({
-            title: meditation.title,
-            date: meditation.dateString,
-            imageUrl: null,
-            content: "",
-          });
+    const fetchContent = async () => {
+      try {
+        // Fetch directly from WordPress REST API (client-side to bypass CORS/firewall issues)
+        const res = await fetch(
+          `https://shaktianandama.com/wp-json/wp/v2/posts?slug=${encodeURIComponent(meditation.slug)}&_embed=wp:featuredmedia`,
+          { mode: "cors" }
+        );
+        
+        if (!res.ok) {
+          throw new Error(`API error: ${res.status}`);
         }
-      })
-      .catch(() => {
-        clearTimeout(timeoutId);
+        
+        const posts = await res.json();
+        
+        if (posts.length > 0) {
+          const post = posts[0];
+          
+          // Get best image
+          const media = post._embedded?.["wp:featuredmedia"]?.[0];
+          let imageUrl: string | null = null;
+          if (media) {
+            const sizes = media.media_details?.sizes;
+            imageUrl = sizes?.full?.source_url || sizes?.large?.source_url || media.source_url || null;
+          }
+          
+          // Clean content (remove scripts, styles, share buttons)
+          let content = post.content.rendered;
+          content = content
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+            .replace(/<div[^>]*class="[^"]*sharedaddy[^"]*"[^>]*>[\s\S]*?<\/div>/gi, "")
+            .replace(/<div[^>]*id="[^"]*jp-relatedposts[^"]*"[^>]*>[\s\S]*?<\/div>/gi, "")
+            .trim();
+          
+          setContent({
+            title: post.title.rendered.replace(/<[^>]+>/g, "").trim(),
+            date: post.date.split("T")[0],
+            imageUrl,
+            content,
+          });
+          return;
+        }
+        
+        throw new Error("No posts found");
+      } catch (err) {
+        console.error("[v0] Error fetching meditation content:", err);
         // Fallback to local data
         setContent({
           title: meditation.title,
           date: meditation.dateString,
-          imageUrl: null,
+          imageUrl: meditation.imageUrl || null,
           content: "",
         });
-      })
-      .finally(() => setLoading(false));
-
-    return () => {
-      clearTimeout(timeoutId);
-      controller.abort();
+      } finally {
+        setLoading(false);
+      }
     };
+    
+    fetchContent();
   }, [meditation]);
 
   // Track scroll progress for reading bar
