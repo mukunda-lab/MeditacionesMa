@@ -51,7 +51,7 @@ export function MeditationTimeline() {
         
         while (hasMore && page <= totalPages) {
           const res = await fetch(
-            `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia`,
+            `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia,wp:term`,
             { mode: "cors" }
           );
           
@@ -77,15 +77,26 @@ export function MeditationTimeline() {
           page++;
         }
         
-        // Filter to keep only meditation posts (exclude pages, categories, etc.)
-        // Meditation posts typically have a featured image and meaningful content
+        // Filter: keep only posts that belong to a "meditacion" category
+        // The WP API returns category IDs in post.categories[]
+        // We detect meditation posts by checking if any category name contains "meditaci"
+        // We also fetch category names from the embedded terms if available
         const meditationPosts = allPosts.filter((post: any) => {
-          // Must have featured image
-          const hasImage = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
-          // Exclude common non-meditation slugs
-          const excludedSlugs = ["contacto", "sobre", "about", "privacy", "legal", "terms", "cookie", "aviso-legal"];
-          const isExcluded = excludedSlugs.some(s => post.slug.includes(s));
-          return hasImage && !isExcluded;
+          const hasImage = !!post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
+          if (!hasImage) return false;
+
+          // Check embedded terms for a category that looks like "meditaci..." (handles meditacion/meditaciones)
+          const terms: any[] = post._embedded?.["wp:term"]?.flat() ?? [];
+          const hasMeditationCategory = terms.some(
+            (term: any) =>
+              term.taxonomy === "category" &&
+              typeof term.name === "string" &&
+              term.name.toLowerCase().replace(/[áéíóúàèìòù]/g, (c: string) =>
+                ({ á: "a", é: "e", í: "i", ó: "o", ú: "u", à: "a", è: "e", ì: "i", ò: "o", ù: "u" }[c] ?? c)
+              ).includes("meditaci")
+          );
+
+          return hasMeditationCategory;
         });
         
         // Process posts and detect language
@@ -141,7 +152,6 @@ export function MeditationTimeline() {
         
         setApiMeditations(meditations);
       } catch (err) {
-        console.error("[v0] Failed to fetch from WordPress API:", err);
         // Fall back to local API
         try {
           const res = await fetch("/api/meditations");
@@ -179,9 +189,13 @@ export function MeditationTimeline() {
     });
     
     // Group Spanish meditations with their translations
+    // Also: if a translation has no image, inherit the primary's image
     return spanish.map(primary => ({
       primary,
-      translations: translationMap.get(primary.slug) || [],
+      translations: (translationMap.get(primary.slug) || []).map(t => ({
+        ...t,
+        imageUrl: t.imageUrl || primary.imageUrl,
+      })),
     }));
   }, [apiMeditations]);
 
@@ -463,8 +477,8 @@ export function MeditationTimeline() {
           style={{
             cursor: isDragging ? "grabbing" : "grab",
             minHeight: "260px",
-            paddingTop: "40px",
-            paddingBottom: "40px",
+            paddingTop: "100px",
+            paddingBottom: "100px",
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -476,7 +490,7 @@ export function MeditationTimeline() {
         >
           <div
             className="relative w-full max-w-5xl flex items-center justify-center"
-            style={{ perspective: "1200px", transformStyle: "preserve-3d", height: "340px" }}
+            style={{ perspective: "1200px", transformStyle: "preserve-3d", height: "560px" }}
           >
             {sortedMeditations.map((meditation, index) => {
               const offset = index - activeIndex;
