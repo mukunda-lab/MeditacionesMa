@@ -480,150 +480,232 @@ export function MeditationTimeline() {
 
       {/* Timeline */}
       <div ref={timelineRef} className="relative px-8 md:px-16 pb-16">
-        <div className="relative h-40">
-          {/* Tick marks */}
-          <div className="absolute top-0 left-0 right-0 h-20 flex justify-between items-end">
+
+        {/* Serendipia button */}
+        <div className="flex justify-center mb-6">
+          <button
+            onClick={() => {
+              const randomIndex = Math.floor(Math.random() * sortedMeditations.length);
+              setActiveIndex(randomIndex);
+              setReaderOpen(true);
+            }}
+            className="group relative px-8 py-2.5 text-xs tracking-[0.25em] uppercase font-light transition-all duration-300"
+            style={{
+              border: "1px solid oklch(0.75 0.12 85 / 0.5)",
+              color: "oklch(0.55 0.08 85)",
+              borderRadius: "1px",
+              letterSpacing: "0.2em",
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "oklch(0.75 0.12 85 / 0.08)";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.75 0.12 85 / 0.9)";
+              (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.65 0.12 85)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.75 0.12 85 / 0.5)";
+              (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.55 0.08 85)";
+            }}
+          >
+            Serendipia
+          </button>
+        </div>
+
+        <div className="relative" style={{ height: "100px" }}>
+          {/* Tick marks — rendered as absolute positioned bars anchored to bottom */}
+          <div className="absolute inset-x-0" style={{ bottom: "28px", height: "56px" }}>
             {sortedMeditations.map((meditation, i) => {
               const isYearStart = yearPositions.some((yp) => yp.index === i);
               const isActive = i === activeIndex;
               const isHovered = i === hoveredTickIndex;
+              const leftPct = sortedMeditations.length > 1
+                ? (i / (sortedMeditations.length - 1)) * 100
+                : 0;
+
+              // Base heights in px
+              const baseH = isYearStart ? 20 : 12;
+              const hoveredH = 48;
+              const activeH = 40;
 
               return (
                 <div
                   key={i}
-                  className="relative flex flex-col items-center"
-                  style={{ width: `${100 / sortedMeditations.length}%` }}
+                  className="absolute flex flex-col items-center justify-end"
+                  style={{
+                    left: `${leftPct}%`,
+                    bottom: 0,
+                    height: "100%",
+                    transform: "translateX(-50%)",
+                  }}
                 >
-                  {/* Tooltip */}
+                  {/* Tooltip on hover */}
                   {isHovered && (
                     <div
-                      className="absolute bottom-full mb-2 px-3 py-1.5 text-xs rounded shadow-lg whitespace-nowrap z-30 pointer-events-none"
+                      className="absolute pointer-events-none z-30 px-2.5 py-1.5 text-xs rounded-sm shadow-lg"
                       style={{
-                        backgroundColor: "oklch(0.25 0.03 240)",
-                        color: "oklch(0.92 0.02 85)",
-                        transform: "translateX(-50%)",
+                        bottom: "calc(100% + 8px)",
                         left: "50%",
+                        transform: "translateX(-50%)",
+                        backgroundColor: "oklch(0.18 0.02 240)",
+                        color: "oklch(0.92 0.02 85)",
+                        whiteSpace: "nowrap",
+                        maxWidth: "220px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
                       }}
                     >
-                      <div className="font-medium">{meditation.title}</div>
-                      <div style={{ color: "oklch(0.70 0.05 85)" }}>{formatDateShort(meditation.dateString)}</div>
-                      {/* Arrow */}
+                      <div className="font-medium truncate">{meditation.title}</div>
+                      <div className="mt-0.5" style={{ color: "oklch(0.70 0.06 85)", fontSize: "10px" }}>
+                        {formatDateShort(meditation.dateString)}
+                      </div>
                       <div
-                        className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0"
+                        className="absolute left-1/2 -translate-x-1/2 top-full"
                         style={{
+                          width: 0, height: 0,
                           borderLeft: "4px solid transparent",
                           borderRight: "4px solid transparent",
-                          borderTop: "4px solid oklch(0.25 0.03 240)",
+                          borderTop: "4px solid oklch(0.18 0.02 240)",
                         }}
                       />
                     </div>
                   )}
 
-                  {/* Tick */}
+                  {/* Hit area + visible tick */}
                   <button
-                    className="w-px transition-all duration-200"
-                    style={{
-                      height: isActive ? "40px" : isHovered ? "32px" : isYearStart ? "26px" : "16px",
-                      backgroundColor: isActive
-                        ? "oklch(0.75 0.12 85)"
-                        : isHovered
-                        ? "oklch(0.65 0.10 85)"
-                        : isYearStart
-                        ? "oklch(0.35 0.02 240)"
-                        : "oklch(0.55 0.02 240 / 0.5)",
-                      transform: isHovered && !isActive ? "translateY(-6px)" : "translateY(0)",
-                    }}
                     onClick={() => setActiveIndex(i)}
                     onMouseEnter={() => setHoveredTickIndex(i)}
                     onMouseLeave={() => setHoveredTickIndex(null)}
                     aria-label={`Ir a: ${meditation.title}`}
-                  />
+                    className="relative flex items-end justify-center"
+                    style={{
+                      width: "12px",
+                      height: "100%",
+                      background: "transparent",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {/* The visible bar */}
+                    <div
+                      style={{
+                        width: isActive || isHovered ? "2px" : "1px",
+                        height: isActive
+                          ? `${activeH}px`
+                          : isHovered
+                          ? `${hoveredH}px`
+                          : `${baseH}px`,
+                        backgroundColor: isActive
+                          ? "oklch(0.75 0.12 85)"
+                          : isHovered
+                          ? "oklch(0.60 0.10 85)"
+                          : isYearStart
+                          ? "oklch(0.38 0.02 240)"
+                          : "oklch(0.55 0.02 240 / 0.45)",
+                        transition: "height 0.15s ease, width 0.15s ease, background-color 0.15s ease",
+                        transformOrigin: "bottom",
+                        borderRadius: "1px 1px 0 0",
+                      }}
+                    />
+                  </button>
                 </div>
               );
             })}
           </div>
 
-          {/* Draggable track */}
+          {/* Draggable track — sits just below the ticks */}
           <div
             ref={timelineTrackRef}
-            className="absolute left-0 right-0 h-6"
+            className="absolute inset-x-0"
             style={{
-              top: "80px",
+              bottom: "16px",
+              height: "24px",
               cursor: isTimelineDragging ? "grabbing" : "grab",
             }}
             onMouseDown={handleTimelineMouseDown}
             onTouchStart={handleTimelineTouchStart}
           >
-            {/* Track background */}
+            {/* Track background line */}
             <div
-              className="absolute left-0 right-0"
+              className="absolute inset-x-0"
               style={{
                 top: "50%",
-                transform: "translateY(-50%)",
                 height: "1px",
-                backgroundColor: "oklch(0.55 0.02 240 / 0.25)",
+                backgroundColor: "oklch(0.55 0.02 240 / 0.2)",
+                transform: "translateY(-50%)",
               }}
             />
-            {/* Progress */}
+            {/* Progress line */}
             <div
-              className="absolute left-0 transition-all duration-150"
               style={{
+                position: "absolute",
                 top: "50%",
-                transform: "translateY(-50%)",
+                left: 0,
                 height: "1px",
                 width: `${progressPercentage}%`,
                 backgroundColor: "oklch(0.75 0.12 85)",
+                transform: "translateY(-50%)",
+                transition: "width 0.15s ease",
               }}
             />
-            {/* Dot */}
+            {/* Draggable dot */}
             <div
-              className="absolute transition-transform duration-150"
               style={{
+                position: "absolute",
                 top: "50%",
                 left: `${progressPercentage}%`,
-                transform: `translate(-50%, -50%) scale(${isTimelineDragging ? 1.4 : 1})`,
-                width: "18px",
-                height: "18px",
+                transform: `translate(-50%, -50%) scale(${isTimelineDragging ? 1.35 : 1})`,
+                width: "16px",
+                height: "16px",
                 borderRadius: "50%",
                 backgroundColor: "oklch(0.75 0.12 85)",
-                border: "3px solid oklch(0.98 0.005 240)",
-                boxShadow: "0 2px 8px oklch(0 0 0 / 0.2)",
+                border: "2.5px solid oklch(0.98 0.005 240)",
+                boxShadow: "0 1px 6px oklch(0 0 0 / 0.18)",
+                transition: "transform 0.15s ease",
+                zIndex: 10,
               }}
             >
               {isTimelineDragging && (
                 <div
                   className="absolute inset-0 rounded-full animate-ping"
-                  style={{ backgroundColor: "oklch(0.75 0.12 85 / 0.4)" }}
+                  style={{ backgroundColor: "oklch(0.75 0.12 85 / 0.35)" }}
                 />
               )}
             </div>
           </div>
 
-          {/* Year labels */}
-          <div className="absolute left-0 right-0" style={{ top: "110px" }}>
-            {yearPositions.map(({ year, position, index }) => (
-              <button
-                key={year}
-                className="absolute transform -translate-x-1/2 text-sm md:text-base font-semibold transition-colors"
-                style={{
-                  left: `${position}%`,
-                  color: parseInt(sortedMeditations[activeIndex]?.dateString?.split('-')[0]) === year
-                    ? "oklch(0.75 0.12 85)"
-                    : "oklch(0.45 0.02 240)",
-                }}
-                onClick={() => setActiveIndex(index)}
-              >
-                {year}
-              </button>
-            ))}
+          {/* Year labels — only show labels that are spaced far enough apart */}
+          <div className="absolute inset-x-0" style={{ bottom: 0 }}>
+            {(() => {
+              const MIN_GAP_PCT = 7; // minimum % between year labels
+              const shown: { year: number; position: number; index: number }[] = [];
+              for (const yp of yearPositions) {
+                const tooClose = shown.some(s => Math.abs(s.position - yp.position) < MIN_GAP_PCT);
+                if (!tooClose) shown.push(yp);
+              }
+              const activeYear = parseInt(sortedMeditations[activeIndex]?.dateString?.split('-')[0]);
+              return shown.map(({ year, position, index }) => (
+                <button
+                  key={year}
+                  onClick={() => setActiveIndex(index)}
+                  className="absolute -translate-x-1/2 transition-colors duration-200"
+                  style={{
+                    left: `${position}%`,
+                    bottom: 0,
+                    fontSize: "11px",
+                    fontWeight: activeYear === year ? 600 : 400,
+                    letterSpacing: "0.05em",
+                    color: activeYear === year
+                      ? "oklch(0.75 0.12 85)"
+                      : "oklch(0.45 0.02 240)",
+                    lineHeight: 1,
+                  }}
+                >
+                  {year}
+                </button>
+              ));
+            })()}
           </div>
-        </div>
-
-        {/* Count */}
-        <div className="text-center mt-4">
-          <p className="text-muted-foreground text-sm">
-            {activeIndex + 1} de {sortedMeditations.length} meditaciones
-          </p>
         </div>
       </div>
     </div>
