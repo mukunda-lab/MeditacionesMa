@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import type { Meditation } from "@/lib/meditations-data";
 import { formatDateDisplay } from "@/lib/meditations-data";
 import { BookOpen } from "lucide-react";
@@ -98,13 +97,10 @@ export function MeditationCard({ meditation, isActive, tilt = 0, onTranslationCl
   );
 
   return (
-    <div className="relative" style={{ width: cardWidth }}>
-      {/* Translation tabs stacked above */}
-      {translations.length > 0 && isActive && (
-        <div
-          className="absolute left-1/2 -translate-x-1/2 flex gap-1.5 z-10"
-          style={{ bottom: "100%", marginBottom: "6px" }}
-        >
+    <div className="relative flex flex-col items-center" style={{ width: cardWidth }}>
+      {/* Translation tabs — above active card */}
+      {translations.length > 0 && isActive ? (
+        <div className="flex gap-1.5 mb-1.5">
           {translations.map((t) => (
             <button
               key={t.slug}
@@ -134,6 +130,22 @@ export function MeditationCard({ meditation, isActive, tilt = 0, onTranslationCl
             </button>
           ))}
         </div>
+      ) : translations.length > 0 && !isActive ? (
+        /* Small language indicator for inactive cards with translations */
+        <div className="flex gap-1.5 mb-1.5">
+          {translations.map((t) => (
+            <span
+              key={t.slug}
+              className="text-[9px] font-medium tracking-widest uppercase"
+              style={{ color: "oklch(0.60 0.06 85 / 0.55)" }}
+            >
+              {languageLabels[t.language] || t.language.toUpperCase()}
+            </span>
+          ))}
+        </div>
+      ) : (
+        /* Spacer to keep vertical alignment consistent */
+        <div style={{ height: "28px" }} />
       )}
 
       <div
@@ -223,6 +235,40 @@ export function MeditationCard({ meditation, isActive, tilt = 0, onTranslationCl
           </div>
         )}
       </div>
+
+      {/* Translation buttons — below active card */}
+      {translations.length > 0 && isActive && (
+        <div className="flex gap-1.5 mt-1.5">
+          {translations.map((t) => (
+            <button
+              key={t.slug}
+              onClick={(e) => {
+                e.stopPropagation();
+                onTranslationClick?.(t.slug);
+              }}
+              className="px-3 py-1.5 text-xs font-medium tracking-wide uppercase transition-all duration-200"
+              style={{
+                backgroundColor: "oklch(0.22 0.03 240 / 0.95)",
+                color: "oklch(0.75 0.10 85)",
+                borderRadius: "0 0 2px 2px",
+                border: "1px solid oklch(0.75 0.12 85 / 0.25)",
+                borderTop: "none",
+                boxShadow: "0 2px 8px oklch(0 0 0 / 0.3)",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "oklch(0.28 0.04 240)";
+                (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.85 0.12 85)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "oklch(0.22 0.03 240 / 0.95)";
+                (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.75 0.10 85)";
+              }}
+            >
+              {languageLabels[t.language] || t.language.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

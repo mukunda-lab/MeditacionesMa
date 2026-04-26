@@ -44,41 +44,80 @@ export function MeditationTimeline() {
   useEffect(() => {
     const fetchMeditations = async () => {
       try {
-        // Fetch page 1 to discover total pages, then fetch all remaining pages in parallel
-        const firstRes = await fetch(
-          `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=1&_embed=wp:featuredmedia`,
-          { mode: "cors" }
-        );
+        // Discover the meditation category ID and page-1 posts in parallel
+        const [catRes, firstRes] = await Promise.all([
+          fetch(
+            "https://shaktianandama.com/wp-json/wp/v2/categories?per_page=100",
+            { mode: "cors" }
+          ),
+          fetch(
+            "https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=1&_embed=wp:featuredmedia,wp:term",
+            { mode: "cors" }
+          ),
+        ]);
 
-        if (!firstRes.ok) {
-          throw new Error(`API error: ${firstRes.status}`);
+        if (!firstRes.ok) throw new Error(`API error: ${firstRes.status}`);
+
+        // Find the meditation category ID (slug or name contains "meditaci")
+        let meditationCategoryId: number | null = null;
+        if (catRes.ok) {
+          const cats = await catRes.json();
+          const meditationCat = (cats as any[]).find(
+            (c) =>
+              c.slug?.includes("meditaci") ||
+              c.name?.toLowerCase().includes("meditaci")
+          );
+          if (meditationCat) meditationCategoryId = meditationCat.id;
         }
 
         const firstPage = await firstRes.json();
         const totalPages = parseInt(firstRes.headers.get("X-WP-TotalPages") || "1");
 
-        let allPosts: any[] = firstPage;
-
-        if (totalPages > 1) {
-          const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-          const remainingResults = await Promise.all(
-            remainingPages.map(page =>
-              fetch(
-                `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia`,
-                { mode: "cors" }
-              ).then(r => r.json())
-            )
+        // If we found a category, re-fetch filtered by it; otherwise use first page as-is
+        let allPosts: any[];
+        if (meditationCategoryId) {
+          const catParam = `&categories=${meditationCategoryId}`;
+          const filteredFirst = await fetch(
+            `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=1&_embed=wp:featuredmedia,wp:term${catParam}`,
+            { mode: "cors" }
           );
-          allPosts = [firstPage, ...remainingResults].flat();
+          if (!filteredFirst.ok) throw new Error(`API error: ${filteredFirst.status}`);
+          const filteredFirstPage = await filteredFirst.json();
+          const filteredTotalPages = parseInt(filteredFirst.headers.get("X-WP-TotalPages") || "1");
+
+          allPosts = filteredFirstPage;
+          if (filteredTotalPages > 1) {
+            const remaining = Array.from({ length: filteredTotalPages - 1 }, (_, i) => i + 2);
+            const rest = await Promise.all(
+              remaining.map(page =>
+                fetch(
+                  `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia,wp:term${catParam}`,
+                  { mode: "cors" }
+                ).then(r => r.json())
+              )
+            );
+            allPosts = [filteredFirstPage, ...rest].flat();
+          }
+        } else {
+          // Fallback: use unfiltered posts but keep only those with a featured image
+          allPosts = firstPage;
+          if (totalPages > 1) {
+            const remaining = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+            const rest = await Promise.all(
+              remaining.map(page =>
+                fetch(
+                  `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia,wp:term`,
+                  { mode: "cors" }
+                ).then(r => r.json())
+              )
+            );
+            allPosts = [firstPage, ...rest].flat();
+          }
         }
-        
-        // Filter to keep only meditation posts (exclude pages, categories, etc.)
-        // Meditation posts typically have a featured image and meaningful content
+
+        const excludedSlugs = ["contacto", "sobre", "about", "privacy", "legal", "terms", "cookie", "aviso-legal"];
         const meditationPosts = allPosts.filter((post: any) => {
-          // Must have featured image
           const hasImage = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
-          // Exclude common non-meditation slugs
-          const excludedSlugs = ["contacto", "sobre", "about", "privacy", "legal", "terms", "cookie", "aviso-legal"];
           const isExcluded = excludedSlugs.some(s => post.slug.includes(s));
           return hasImage && !isExcluded;
         });
