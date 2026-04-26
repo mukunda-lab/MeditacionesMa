@@ -46,21 +46,42 @@ export function MeditationReader({
     setContent(null);
     setScrollProgress(0);
 
-    fetch(`/api/meditation/${meditation.slug}`)
+    // Try to fetch from API, but fallback quickly to local data
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+    fetch(`/api/meditation/${meditation.slug}`, { signal: controller.signal })
       .then((r) => r.json())
       .then((data) => {
-        if (!data.error) setContent(data);
+        clearTimeout(timeoutId);
+        if (!data.error && data.content && data.content.length > 100) {
+          setContent(data);
+        } else {
+          // Use local data as fallback
+          setContent({
+            title: meditation.title,
+            date: meditation.dateString,
+            imageUrl: null,
+            content: "",
+          });
+        }
       })
       .catch(() => {
+        clearTimeout(timeoutId);
         // Fallback to local data
         setContent({
           title: meditation.title,
           date: meditation.dateString,
-          imageUrl: meditation.imageUrl || null,
-          content: `<p>${meditation.excerpt}</p>`,
+          imageUrl: null,
+          content: "",
         });
       })
       .finally(() => setLoading(false));
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [meditation]);
 
   // Track scroll progress for reading bar
@@ -297,29 +318,51 @@ export function MeditationReader({
                     </p>
                   ))
                 ) : (
-                  // Fallback: show excerpt and link to original
-                  <div className="text-center py-8">
-                    <p style={{ marginBottom: "1.5em" }}>{meditation.excerpt}</p>
-                    <div className="mt-8 flex items-center justify-center">
-                      <svg width="60" height="12" viewBox="0 0 60 12" fill="none">
-                        <line x1="0" y1="6" x2="20" y2="6" stroke="oklch(0.75 0.12 85 / 0.5)" strokeWidth="0.5" />
-                        <circle cx="30" cy="6" r="4" fill="none" stroke="oklch(0.75 0.12 85 / 0.5)" strokeWidth="0.5" />
-                        <line x1="40" y1="6" x2="60" y2="6" stroke="oklch(0.75 0.12 85 / 0.5)" strokeWidth="0.5" />
-                      </svg>
-                    </div>
-                    <a
-                      href={`https://shaktianandama.com/${meditation.slug}/`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block mt-6 px-6 py-2.5 text-sm font-medium tracking-wide transition-colors"
+                  // Fallback: show excerpt and prominent link to original
+                  <div className="py-4">
+                    <p
                       style={{
-                        border: "1px solid oklch(0.75 0.12 85 / 0.6)",
-                        borderRadius: "2px",
-                        color: "oklch(0.45 0.08 85)",
+                        marginBottom: "2em",
+                        textIndent: "1.5em",
+                        hyphens: "auto",
                       }}
                     >
-                      Leer en el sitio original
-                    </a>
+                      {meditation.excerpt}
+                    </p>
+                    
+                    <div className="flex items-center justify-center my-8">
+                      <svg width="80" height="12" viewBox="0 0 80 12" fill="none">
+                        <line x1="0" y1="6" x2="30" y2="6" stroke="oklch(0.75 0.12 85 / 0.5)" strokeWidth="0.5" />
+                        <circle cx="40" cy="6" r="4" fill="none" stroke="oklch(0.75 0.12 85 / 0.5)" strokeWidth="0.5" />
+                        <line x1="50" y1="6" x2="80" y2="6" stroke="oklch(0.75 0.12 85 / 0.5)" strokeWidth="0.5" />
+                      </svg>
+                    </div>
+                    
+                    <div className="text-center">
+                      <p 
+                        className="text-sm mb-4 font-light"
+                        style={{ color: "oklch(0.55 0.05 85)" }}
+                      >
+                        Para leer la meditación completa, visita el sitio oficial
+                      </p>
+                      <a
+                        href={`https://shaktianandama.com/${meditation.slug}/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-8 py-3 text-sm font-medium tracking-widest uppercase transition-all hover:scale-105"
+                        style={{
+                          backgroundColor: "oklch(0.75 0.12 85)",
+                          borderRadius: "2px",
+                          color: "oklch(0.15 0.02 240)",
+                          boxShadow: "0 4px 12px oklch(0.75 0.12 85 / 0.3)",
+                        }}
+                      >
+                        Leer meditación completa
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
                   </div>
                 )}
               </div>

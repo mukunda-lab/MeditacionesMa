@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { meditations, getYears, type Meditation } from "@/lib/meditations-data";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { meditations as fallbackMeditations, type Meditation } from "@/lib/meditations-data";
 import { MeditationCard } from "./meditation-card";
 import { MeditationReader } from "./meditation-reader";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -18,9 +18,10 @@ export function MeditationTimeline() {
   const timelineTrackRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
 
-  const sortedMeditations = [...meditations].sort(
-    (a, b) => b.dateString.localeCompare(a.dateString)
-  );
+  // Use static meditation data sorted by date
+  const sortedMeditations = useMemo(() => {
+    return [...fallbackMeditations].sort((a, b) => b.dateString.localeCompare(a.dateString));
+  }, []);
 
   const scrollToIndex = useCallback((index: number) => {
     const clampedIndex = Math.max(0, Math.min(index, sortedMeditations.length - 1));

@@ -12,31 +12,16 @@ interface MeditationCardProps {
 }
 
 export function MeditationCard({ meditation, isActive }: MeditationCardProps) {
-  const [imageUrl, setImageUrl] = useState<string | null>(meditation.imageUrl || null);
+  // Use imageUrl directly from props (comes from API merge in timeline)
+  const imageUrl = meditation.imageUrl || null;
   const [imageError, setImageError] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  // Fetch real image from API for this meditation
+  // Reset error state when meditation changes
   useEffect(() => {
     setImageError(false);
     setLoaded(false);
-
-    // If we already have a URL from static data, try it first
-    if (meditation.imageUrl) {
-      setImageUrl(meditation.imageUrl);
-      return;
-    }
-
-    // Otherwise fetch from the scraper API
-    fetch(`/api/meditation/${meditation.slug}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.imageUrl) {
-          setImageUrl(data.imageUrl);
-        }
-      })
-      .catch(() => {});
-  }, [meditation.slug, meditation.imageUrl]);
+  }, [meditation.slug]);
 
   const FallbackCard = () => (
     <div
