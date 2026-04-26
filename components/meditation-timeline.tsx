@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { meditations, getYears, type Meditation } from "@/lib/meditations-data";
 import { MeditationCard } from "./meditation-card";
+import { MeditationReader } from "./meditation-reader";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function MeditationTimeline() {
@@ -12,11 +13,11 @@ export function MeditationTimeline() {
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [hoveredTickIndex, setHoveredTickIndex] = useState<number | null>(null);
+  const [readerOpen, setReaderOpen] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineTrackRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
 
-  const years = getYears();
   const sortedMeditations = [...meditations].sort(
     (a, b) => b.dateString.localeCompare(a.dateString)
   );
@@ -26,8 +27,8 @@ export function MeditationTimeline() {
     setActiveIndex(clampedIndex);
   }, [sortedMeditations.length]);
 
-  const handlePrev = () => scrollToIndex(activeIndex - 1);
-  const handleNext = () => scrollToIndex(activeIndex + 1);
+  const handlePrev = useCallback(() => scrollToIndex(activeIndex - 1), [activeIndex, scrollToIndex]);
+  const handleNext = useCallback(() => scrollToIndex(activeIndex + 1), [activeIndex, scrollToIndex]);
 
   // Cards drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -49,13 +50,8 @@ export function MeditationTimeline() {
     }
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
+  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseLeave = () => setIsDragging(false);
 
   // Touch handlers for cards
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -66,8 +62,7 @@ export function MeditationTimeline() {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    if (!cardsContainerRef.current) return;
+    if (!isDragging || !cardsContainerRef.current) return;
     const x = e.touches[0].pageX - cardsContainerRef.current.offsetLeft;
     const walk = (startX - x) / 150;
     const newIndex = Math.round(scrollLeft + walk);
@@ -76,11 +71,18 @@ export function MeditationTimeline() {
     }
   };
 
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
+  const handleTouchEnd = () => setIsDragging(false);
 
-  // Timeline drag handlers - drag the indicator dot
+  // Timeline drag handlers
+  const updateIndexFromPosition = useCallback((clientX: number) => {
+    if (!timelineTrackRef.current) return;
+    const rect = timelineTrackRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, x / rect.width));
+    const newIndex = Math.round(percentage * (sortedMeditations.length - 1));
+    setActiveIndex(newIndex);
+  }, [sortedMeditations.length]);
+
   const handleTimelineMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsTimelineDragging(true);
@@ -90,22 +92,10 @@ export function MeditationTimeline() {
   const handleTimelineMouseMove = useCallback((e: MouseEvent) => {
     if (!isTimelineDragging) return;
     updateIndexFromPosition(e.clientX);
-  }, [isTimelineDragging]);
+  }, [isTimelineDragging, updateIndexFromPosition]);
 
-  const handleTimelineMouseUp = useCallback(() => {
-    setIsTimelineDragging(false);
-  }, []);
+  const handleTimelineMouseUp = useCallback(() => setIsTimelineDragging(false), []);
 
-  const updateIndexFromPosition = (clientX: number) => {
-    if (!timelineTrackRef.current) return;
-    const rect = timelineTrackRef.current.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const percentage = Math.max(0, Math.min(1, x / rect.width));
-    const newIndex = Math.round(percentage * (sortedMeditations.length - 1));
-    setActiveIndex(newIndex);
-  };
-
-  // Timeline touch handlers
   const handleTimelineTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
     setIsTimelineDragging(true);
@@ -116,13 +106,10 @@ export function MeditationTimeline() {
     if (!isTimelineDragging) return;
     e.preventDefault();
     updateIndexFromPosition(e.touches[0].clientX);
-  }, [isTimelineDragging]);
+  }, [isTimelineDragging, updateIndexFromPosition]);
 
-  const handleTimelineTouchEnd = useCallback(() => {
-    setIsTimelineDragging(false);
-  }, []);
+  const handleTimelineTouchEnd = useCallback(() => setIsTimelineDragging(false), []);
 
-  // Add global mouse/touch listeners for timeline dragging
   useEffect(() => {
     if (isTimelineDragging) {
       window.addEventListener("mousemove", handleTimelineMouseMove);
@@ -130,7 +117,6 @@ export function MeditationTimeline() {
       window.addEventListener("touchmove", handleTimelineTouchMove, { passive: false });
       window.addEventListener("touchend", handleTimelineTouchEnd);
     }
-
     return () => {
       window.removeEventListener("mousemove", handleTimelineMouseMove);
       window.removeEventListener("mouseup", handleTimelineMouseUp);
@@ -142,18 +128,18 @@ export function MeditationTimeline() {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (readerOpen) return;
       if (e.key === "ArrowLeft") handlePrev();
       if (e.key === "ArrowRight") handleNext();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeIndex]);
+  }, [activeIndex, readerOpen, handlePrev, handleNext]);
 
-  // Calculate year marker positions
+  // Year positions
   const getYearPositions = () => {
     const positions: { year: number; position: number; index: number }[] = [];
     let currentYear = -1;
-
     sortedMeditations.forEach((meditation, index) => {
       const year = parseInt(meditation.dateString.split('-')[0]);
       if (year !== currentYear) {
@@ -165,7 +151,6 @@ export function MeditationTimeline() {
         currentYear = year;
       }
     });
-
     return positions;
   };
 
@@ -177,33 +162,34 @@ export function MeditationTimeline() {
   };
 
   const yearPositions = getYearPositions();
-  const progressPercentage = (activeIndex / (sortedMeditations.length - 1)) * 100;
+  const progressPercentage = sortedMeditations.length > 1
+    ? (activeIndex / (sortedMeditations.length - 1)) * 100
+    : 0;
+
+  const activeMeditation: Meditation = sortedMeditations[activeIndex];
 
   return (
     <div className="relative w-full min-h-screen bg-background overflow-hidden">
+      {/* Reader overlay */}
+      {readerOpen && activeMeditation && (
+        <MeditationReader
+          meditation={activeMeditation}
+          onClose={() => setReaderOpen(false)}
+          onPrev={() => { scrollToIndex(activeIndex - 1); }}
+          onNext={() => { scrollToIndex(activeIndex + 1); }}
+          hasPrev={activeIndex > 0}
+          hasNext={activeIndex < sortedMeditations.length - 1}
+        />
+      )}
+
       {/* Header */}
       <header className="text-center pt-12 pb-8 px-4">
         <div className="mb-4">
-          <svg
-            className="w-12 h-12 mx-auto text-primary"
-            viewBox="0 0 48 48"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+          <svg className="w-12 h-12 mx-auto text-primary" viewBox="0 0 48 48" fill="none">
             <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1.5" />
             <circle cx="24" cy="24" r="14" stroke="currentColor" strokeWidth="1" />
-            <path
-              d="M24 10L28 24L24 38L20 24L24 10Z"
-              stroke="currentColor"
-              strokeWidth="1"
-              fill="none"
-            />
-            <path
-              d="M10 24L24 20L38 24L24 28L10 24Z"
-              stroke="currentColor"
-              strokeWidth="1"
-              fill="none"
-            />
+            <path d="M24 10L28 24L24 38L20 24L24 10Z" stroke="currentColor" strokeWidth="1" fill="none" />
+            <path d="M10 24L24 20L38 24L24 28L10 24Z" stroke="currentColor" strokeWidth="1" fill="none" />
           </svg>
         </div>
         <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-foreground tracking-wide mb-3">
@@ -216,7 +202,6 @@ export function MeditationTimeline() {
 
       {/* Cards Carousel */}
       <div className="relative flex-1 flex items-center justify-center py-8">
-        {/* Navigation Arrows */}
         <button
           onClick={handlePrev}
           disabled={activeIndex === 0}
@@ -235,10 +220,10 @@ export function MeditationTimeline() {
           <ChevronRight className="w-6 h-6" />
         </button>
 
-        {/* Cards Container */}
         <div
           ref={cardsContainerRef}
-          className="relative w-full h-[420px] md:h-[480px] flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+          className="relative w-full h-[420px] md:h-[480px] flex items-center justify-center select-none"
+          style={{ cursor: isDragging ? "grabbing" : "grab" }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -251,8 +236,6 @@ export function MeditationTimeline() {
             {sortedMeditations.map((meditation, index) => {
               const offset = index - activeIndex;
               const absOffset = Math.abs(offset);
-
-              // Only render nearby cards for performance
               if (absOffset > 4) return null;
 
               const translateX = offset * 85;
@@ -261,6 +244,7 @@ export function MeditationTimeline() {
               const scale = 1 - absOffset * 0.1;
               const opacity = 1 - absOffset * 0.2;
               const zIndex = 10 - absOffset;
+              const isActive = index === activeIndex;
 
               return (
                 <div
@@ -270,13 +254,17 @@ export function MeditationTimeline() {
                     transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
                     opacity: Math.max(0, opacity),
                     zIndex,
+                    cursor: isActive ? "pointer" : "default",
                   }}
-                  onClick={() => setActiveIndex(index)}
+                  onClick={() => {
+                    if (isActive && !isDragging) {
+                      setReaderOpen(true);
+                    } else {
+                      setActiveIndex(index);
+                    }
+                  }}
                 >
-                  <MeditationCard
-                    meditation={meditation}
-                    isActive={index === activeIndex}
-                  />
+                  <MeditationCard meditation={meditation} isActive={isActive} />
                 </div>
               );
             })}
@@ -284,103 +272,146 @@ export function MeditationTimeline() {
         </div>
       </div>
 
+      {/* Click hint for active card */}
+      <div className="text-center -mt-4 mb-6">
+        <p className="text-xs text-muted-foreground tracking-widest uppercase font-light">
+          Clic en la tarjeta para leer
+        </p>
+      </div>
+
       {/* Timeline */}
       <div ref={timelineRef} className="relative px-8 md:px-16 pb-16">
-        {/* Timeline Track */}
         <div className="relative h-40">
-          {/* Tick marks with hover effect */}
-          <div className="absolute top-0 left-0 right-0 h-20 flex justify-between items-end px-0">
+          {/* Tick marks */}
+          <div className="absolute top-0 left-0 right-0 h-20 flex justify-between items-end">
             {sortedMeditations.map((meditation, i) => {
               const isYearStart = yearPositions.some((yp) => yp.index === i);
               const isActive = i === activeIndex;
               const isHovered = i === hoveredTickIndex;
-              
+
               return (
                 <div
                   key={i}
                   className="relative flex flex-col items-center"
                   style={{ width: `${100 / sortedMeditations.length}%` }}
                 >
-                  {/* Tooltip on hover */}
+                  {/* Tooltip */}
                   {isHovered && (
-                    <div className="absolute bottom-full mb-2 px-3 py-1.5 bg-card text-card-foreground text-xs rounded-md shadow-lg whitespace-nowrap z-30 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <div
+                      className="absolute bottom-full mb-2 px-3 py-1.5 text-xs rounded shadow-lg whitespace-nowrap z-30 pointer-events-none"
+                      style={{
+                        backgroundColor: "oklch(0.25 0.03 240)",
+                        color: "oklch(0.92 0.02 85)",
+                        transform: "translateX(-50%)",
+                        left: "50%",
+                      }}
+                    >
                       <div className="font-medium">{meditation.title}</div>
-                      <div className="text-card-foreground/70">{formatDateShort(meditation.dateString)}</div>
-                      <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-card" />
+                      <div style={{ color: "oklch(0.70 0.05 85)" }}>{formatDateShort(meditation.dateString)}</div>
+                      {/* Arrow */}
+                      <div
+                        className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0"
+                        style={{
+                          borderLeft: "4px solid transparent",
+                          borderRight: "4px solid transparent",
+                          borderTop: "4px solid oklch(0.25 0.03 240)",
+                        }}
+                      />
                     </div>
                   )}
-                  
-                  {/* Tick mark */}
+
+                  {/* Tick */}
                   <button
-                    className={`w-px transition-all duration-300 cursor-pointer ${
-                      isActive
-                        ? "bg-primary"
-                        : isHovered
-                        ? "bg-primary/80"
-                        : isYearStart
-                        ? "bg-foreground/60"
-                        : "bg-foreground/30"
-                    }`}
+                    className="w-px transition-all duration-200"
                     style={{
-                      height: isActive 
-                        ? "40px" 
-                        : isHovered 
-                        ? "32px" 
-                        : isYearStart 
-                        ? "28px" 
-                        : "18px",
-                      transform: isHovered && !isActive ? "translateY(-4px)" : "translateY(0)",
+                      height: isActive ? "40px" : isHovered ? "32px" : isYearStart ? "26px" : "16px",
+                      backgroundColor: isActive
+                        ? "oklch(0.75 0.12 85)"
+                        : isHovered
+                        ? "oklch(0.65 0.10 85)"
+                        : isYearStart
+                        ? "oklch(0.35 0.02 240)"
+                        : "oklch(0.55 0.02 240 / 0.5)",
+                      transform: isHovered && !isActive ? "translateY(-6px)" : "translateY(0)",
                     }}
                     onClick={() => setActiveIndex(i)}
                     onMouseEnter={() => setHoveredTickIndex(i)}
                     onMouseLeave={() => setHoveredTickIndex(null)}
-                    aria-label={`Ir a ${meditation.title}`}
+                    aria-label={`Ir a: ${meditation.title}`}
                   />
                 </div>
               );
             })}
           </div>
 
-          {/* Main timeline line - draggable area */}
-          <div 
+          {/* Draggable track */}
+          <div
             ref={timelineTrackRef}
-            className={`absolute top-20 left-0 right-0 h-3 cursor-pointer ${isTimelineDragging ? "cursor-grabbing" : "cursor-grab"}`}
+            className="absolute left-0 right-0 h-6"
+            style={{
+              top: "80px",
+              cursor: isTimelineDragging ? "grabbing" : "grab",
+            }}
             onMouseDown={handleTimelineMouseDown}
             onTouchStart={handleTimelineTouchStart}
           >
             {/* Track background */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-0.5 bg-foreground/20" />
-            
-            {/* Progress fill */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 left-0 h-0.5 bg-primary transition-all duration-150"
-              style={{ width: `${progressPercentage}%` }}
+              className="absolute left-0 right-0"
+              style={{
+                top: "50%",
+                transform: "translateY(-50%)",
+                height: "1px",
+                backgroundColor: "oklch(0.55 0.02 240 / 0.25)",
+              }}
             />
-            
-            {/* Draggable indicator dot */}
+            {/* Progress */}
             <div
-              className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary border-4 border-background shadow-lg transition-transform duration-150 ${
-                isTimelineDragging ? "scale-125" : "hover:scale-110"
-              }`}
-              style={{ 
-                left: `${progressPercentage}%`, 
-                marginLeft: "-10px",
+              className="absolute left-0 transition-all duration-150"
+              style={{
+                top: "50%",
+                transform: "translateY(-50%)",
+                height: "1px",
+                width: `${progressPercentage}%`,
+                backgroundColor: "oklch(0.75 0.12 85)",
+              }}
+            />
+            {/* Dot */}
+            <div
+              className="absolute transition-transform duration-150"
+              style={{
+                top: "50%",
+                left: `${progressPercentage}%`,
+                transform: `translate(-50%, -50%) scale(${isTimelineDragging ? 1.4 : 1})`,
+                width: "18px",
+                height: "18px",
+                borderRadius: "50%",
+                backgroundColor: "oklch(0.75 0.12 85)",
+                border: "3px solid oklch(0.98 0.005 240)",
+                boxShadow: "0 2px 8px oklch(0 0 0 / 0.2)",
               }}
             >
-              {/* Pulse effect when dragging */}
               {isTimelineDragging && (
-                <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-50" />
+                <div
+                  className="absolute inset-0 rounded-full animate-ping"
+                  style={{ backgroundColor: "oklch(0.75 0.12 85 / 0.4)" }}
+                />
               )}
             </div>
           </div>
 
           {/* Year labels */}
-          <div className="absolute top-28 left-0 right-0">
+          <div className="absolute left-0 right-0" style={{ top: "110px" }}>
             {yearPositions.map(({ year, position, index }) => (
               <button
                 key={year}
-                className="absolute transform -translate-x-1/2 text-sm md:text-base font-semibold text-foreground/70 hover:text-primary transition-colors"
-                style={{ left: `${position}%` }}
+                className="absolute transform -translate-x-1/2 text-sm md:text-base font-semibold transition-colors"
+                style={{
+                  left: `${position}%`,
+                  color: parseInt(sortedMeditations[activeIndex]?.dateString?.split('-')[0]) === year
+                    ? "oklch(0.75 0.12 85)"
+                    : "oklch(0.45 0.02 240)",
+                }}
                 onClick={() => setActiveIndex(index)}
               >
                 {year}
@@ -389,7 +420,7 @@ export function MeditationTimeline() {
           </div>
         </div>
 
-        {/* Current meditation info */}
+        {/* Count */}
         <div className="text-center mt-4">
           <p className="text-muted-foreground text-sm">
             {activeIndex + 1} de {sortedMeditations.length} meditaciones

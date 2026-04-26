@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import type { Meditation } from "@/lib/meditations-data";
 import { formatDateDisplay } from "@/lib/meditations-data";
+import { BookOpen } from "lucide-react";
 
 interface MeditationCardProps {
   meditation: Meditation;
@@ -11,143 +12,86 @@ interface MeditationCardProps {
 }
 
 export function MeditationCard({ meditation, isActive }: MeditationCardProps) {
+  const [imageUrl, setImageUrl] = useState<string | null>(meditation.imageUrl || null);
   const [imageError, setImageError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
-  // Fallback placeholder with meditation info
-  const FallbackContent = () => (
-    <div className="absolute inset-0 bg-card flex flex-col items-center justify-center p-6 md:p-8 text-center">
-      {/* Decorative corner patterns */}
-      <div className="absolute inset-0 opacity-30 pointer-events-none">
+  // Fetch real image from API for this meditation
+  useEffect(() => {
+    setImageError(false);
+    setLoaded(false);
+
+    // If we already have a URL from static data, try it first
+    if (meditation.imageUrl) {
+      setImageUrl(meditation.imageUrl);
+      return;
+    }
+
+    // Otherwise fetch from the scraper API
+    fetch(`/api/meditation/${meditation.slug}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.imageUrl) {
+          setImageUrl(data.imageUrl);
+        }
+      })
+      .catch(() => {});
+  }, [meditation.slug, meditation.imageUrl]);
+
+  const FallbackCard = () => (
+    <div
+      className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center"
+      style={{ backgroundColor: "oklch(0.42 0.05 240)" }}
+    >
+      {/* Corner decorations */}
+      {[0, 90, 180, 270].map((rot) => (
         <svg
-          className="absolute top-0 left-0 w-32 h-32 text-secondary"
+          key={rot}
+          className="absolute w-24 h-24 opacity-20"
+          style={{
+            top: rot < 180 ? 0 : "auto",
+            bottom: rot >= 180 ? 0 : "auto",
+            left: rot === 0 || rot === 270 ? 0 : "auto",
+            right: rot === 90 || rot === 180 ? 0 : "auto",
+            transform: `rotate(${rot}deg)`,
+          }}
           viewBox="0 0 100 100"
           fill="none"
         >
-          <path
-            d="M0 100 Q0 0 100 0"
-            stroke="currentColor"
-            strokeWidth="0.5"
-            fill="none"
-          />
-          <circle cx="15" cy="15" r="8" stroke="currentColor" strokeWidth="0.3" />
-          <circle cx="15" cy="15" r="12" stroke="currentColor" strokeWidth="0.2" />
-          <path d="M10 15 L20 15 M15 10 L15 20" stroke="currentColor" strokeWidth="0.3" />
+          <path d="M0 100 Q0 0 100 0" stroke="oklch(0.75 0.12 85)" strokeWidth="0.5" />
+          <circle cx="15" cy="15" r="8" stroke="oklch(0.75 0.12 85)" strokeWidth="0.3" />
+          <circle cx="15" cy="15" r="14" stroke="oklch(0.75 0.12 85)" strokeWidth="0.2" />
         </svg>
-        <svg
-          className="absolute top-0 right-0 w-32 h-32 text-secondary rotate-90"
-          viewBox="0 0 100 100"
-          fill="none"
-        >
-          <path
-            d="M0 100 Q0 0 100 0"
-            stroke="currentColor"
-            strokeWidth="0.5"
-            fill="none"
-          />
-          <circle cx="15" cy="15" r="8" stroke="currentColor" strokeWidth="0.3" />
-          <circle cx="15" cy="15" r="12" stroke="currentColor" strokeWidth="0.2" />
-        </svg>
-        <svg
-          className="absolute bottom-0 left-0 w-32 h-32 text-secondary -rotate-90"
-          viewBox="0 0 100 100"
-          fill="none"
-        >
-          <path
-            d="M0 100 Q0 0 100 0"
-            stroke="currentColor"
-            strokeWidth="0.5"
-            fill="none"
-          />
-          <circle cx="15" cy="15" r="8" stroke="currentColor" strokeWidth="0.3" />
-        </svg>
-        <svg
-          className="absolute bottom-0 right-0 w-32 h-32 text-secondary rotate-180"
-          viewBox="0 0 100 100"
-          fill="none"
-        >
-          <path
-            d="M0 100 Q0 0 100 0"
-            stroke="currentColor"
-            strokeWidth="0.5"
-            fill="none"
-          />
-          <circle cx="15" cy="15" r="8" stroke="currentColor" strokeWidth="0.3" />
-        </svg>
-      </div>
+      ))}
 
-      {/* Floral pattern overlay */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <svg className="w-full h-full" viewBox="0 0 340 440" fill="none">
-          <g transform="translate(30, 30)" className="text-secondary">
-            <circle cx="0" cy="0" r="20" stroke="currentColor" strokeWidth="0.5" fill="none" />
-            <ellipse cx="0" cy="-15" rx="4" ry="10" stroke="currentColor" strokeWidth="0.5" fill="none" />
-            <ellipse cx="0" cy="15" rx="4" ry="10" stroke="currentColor" strokeWidth="0.5" fill="none" />
-            <ellipse cx="-15" cy="0" rx="10" ry="4" stroke="currentColor" strokeWidth="0.5" fill="none" />
-            <ellipse cx="15" cy="0" rx="10" ry="4" stroke="currentColor" strokeWidth="0.5" fill="none" />
-          </g>
-          <g transform="translate(310, 30)" className="text-secondary">
-            <circle cx="0" cy="0" r="20" stroke="currentColor" strokeWidth="0.5" fill="none" />
-            <ellipse cx="0" cy="-15" rx="4" ry="10" stroke="currentColor" strokeWidth="0.5" fill="none" />
-            <ellipse cx="0" cy="15" rx="4" ry="10" stroke="currentColor" strokeWidth="0.5" fill="none" />
-          </g>
-          <g transform="translate(30, 410)" className="text-secondary">
-            <circle cx="0" cy="0" r="20" stroke="currentColor" strokeWidth="0.5" fill="none" />
-            <ellipse cx="-15" cy="0" rx="10" ry="4" stroke="currentColor" strokeWidth="0.5" fill="none" />
-            <ellipse cx="15" cy="0" rx="10" ry="4" stroke="currentColor" strokeWidth="0.5" fill="none" />
-          </g>
-          <g transform="translate(310, 410)" className="text-secondary">
-            <circle cx="0" cy="0" r="20" stroke="currentColor" strokeWidth="0.5" fill="none" />
-          </g>
-        </svg>
-      </div>
+      {/* Symbol */}
+      <svg className="w-10 h-10 mb-4 opacity-80" viewBox="0 0 48 48" fill="none" style={{ color: "oklch(0.75 0.12 85)" }}>
+        <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="1" />
+        <circle cx="24" cy="24" r="12" stroke="currentColor" strokeWidth="0.75" />
+        <path d="M24 12L27 24L24 36L21 24L24 12Z" stroke="currentColor" strokeWidth="0.75" fill="none" />
+        <path d="M12 24L24 21L36 24L24 27L12 24Z" stroke="currentColor" strokeWidth="0.75" fill="none" />
+        <circle cx="24" cy="24" r="2.5" fill="currentColor" />
+      </svg>
 
-      {/* Top symbol */}
-      <div className="mb-6">
-        <svg
-          className="w-10 h-10 md:w-12 md:h-12 text-primary"
-          viewBox="0 0 48 48"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="1" />
-          <circle cx="24" cy="24" r="12" stroke="currentColor" strokeWidth="0.75" />
-          <path
-            d="M24 12L27 24L24 36L21 24L24 12Z"
-            stroke="currentColor"
-            strokeWidth="0.75"
-            fill="none"
-          />
-          <path
-            d="M12 24L24 21L36 24L24 27L12 24Z"
-            stroke="currentColor"
-            strokeWidth="0.75"
-            fill="none"
-          />
-          <circle cx="24" cy="24" r="3" fill="currentColor" />
-        </svg>
-      </div>
-
-      {/* Title */}
-      <h2 className="font-serif text-xl md:text-2xl font-semibold text-primary uppercase tracking-wider mb-2 text-balance leading-tight">
+      <h2
+        className="font-serif font-semibold uppercase tracking-wider mb-3 text-balance leading-tight"
+        style={{ fontSize: "clamp(1rem, 4vw, 1.3rem)", color: "oklch(0.75 0.12 85)" }}
+      >
         {meditation.title}
       </h2>
 
-      {/* Decorative line */}
-      <div className="flex items-center gap-3 my-4">
-        <div className="w-10 h-px bg-primary/50" />
-        <svg className="w-3 h-3 text-primary" viewBox="0 0 16 16" fill="none">
-          <path d="M8 0L10 6L16 8L10 10L8 16L6 10L0 8L6 6L8 0Z" fill="currentColor" />
+      <div className="flex items-center gap-2 my-3">
+        <div className="w-8 h-px" style={{ backgroundColor: "oklch(0.75 0.12 85 / 0.5)" }} />
+        <svg className="w-2.5 h-2.5" viewBox="0 0 16 16" fill="oklch(0.75 0.12 85 / 0.8)">
+          <path d="M8 0L10 6L16 8L10 10L8 16L6 10L0 8L6 6L8 0Z" />
         </svg>
-        <div className="w-10 h-px bg-primary/50" />
+        <div className="w-8 h-px" style={{ backgroundColor: "oklch(0.75 0.12 85 / 0.5)" }} />
       </div>
 
-      {/* Subtitle */}
-      <p className="text-card-foreground/80 text-sm font-light tracking-wide mb-3">
-        {meditation.subtitle}
+      <p className="text-xs font-light tracking-wide mb-2" style={{ color: "oklch(0.80 0.02 85)" }}>
+        Meditación con Mataji Shaktiananda
       </p>
-
-      {/* Date */}
-      <p className="text-primary text-sm font-medium tracking-widest">
+      <p className="text-sm font-medium tracking-widest" style={{ color: "oklch(0.75 0.12 85)" }}>
         {formatDateDisplay(meditation.dateString)}
       </p>
     </div>
@@ -155,43 +99,83 @@ export function MeditationCard({ meditation, isActive }: MeditationCardProps) {
 
   return (
     <div
-      className={`relative w-[280px] md:w-[340px] h-[380px] md:h-[440px] rounded-lg overflow-hidden transition-all duration-500 ${
-        isActive ? "shadow-2xl" : "shadow-lg"
-      }`}
+      className="relative overflow-hidden transition-all duration-500"
+      style={{
+        width: "clamp(200px, 30vw, 340px)",
+        height: "clamp(260px, 40vw, 440px)",
+        borderRadius: "4px",
+        boxShadow: isActive
+          ? "0 24px 60px oklch(0 0 0 / 0.5), 0 0 0 1px oklch(0.75 0.12 85 / 0.3)"
+          : "0 8px 24px oklch(0 0 0 / 0.3)",
+      }}
     >
-      {/* Try to load the actual image from the website */}
-      {!imageError ? (
-        <div className="relative w-full h-full">
+      {imageUrl && !imageError ? (
+        <>
+          {/* Skeleton while loading */}
+          {!loaded && (
+            <div
+              className="absolute inset-0 animate-pulse"
+              style={{ backgroundColor: "oklch(0.38 0.04 240)" }}
+            />
+          )}
           <Image
-            src={meditation.imageUrl}
+            src={imageUrl}
             alt={meditation.title}
             fill
-            className="object-cover"
-            sizes="(max-width: 768px) 280px, 340px"
-            onError={() => setImageError(true)}
+            className="object-cover transition-opacity duration-500"
+            style={{ opacity: loaded ? 1 : 0 }}
+            sizes="(max-width: 768px) 200px, 340px"
+            onLoad={() => setLoaded(true)}
+            onError={() => {
+              setImageError(true);
+              setLoaded(true);
+            }}
             priority={isActive}
+            unoptimized
           />
-          {/* Overlay with title and date for image cards */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-5 text-center">
-            <h2 className="font-serif text-lg md:text-xl font-semibold text-white uppercase tracking-wider mb-1 text-balance leading-tight drop-shadow-lg">
+          {/* Gradient overlay */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(to top, oklch(0.15 0.02 240 / 0.9) 0%, oklch(0.15 0.02 240 / 0.3) 45%, transparent 70%)",
+            }}
+          />
+          {/* Text overlay at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
+            <h2
+              className="font-serif font-semibold uppercase tracking-wider mb-1 text-balance leading-tight"
+              style={{ fontSize: "clamp(0.85rem, 2.5vw, 1.1rem)", color: "oklch(0.90 0.03 85)" }}
+            >
               {meditation.title}
             </h2>
-            <p className="text-white/80 text-xs font-light tracking-wide mb-2">
-              {meditation.subtitle}
-            </p>
-            <p className="text-primary text-sm font-medium tracking-widest">
+            <p className="text-xs font-light tracking-widest" style={{ color: "oklch(0.75 0.12 85)" }}>
               {formatDateDisplay(meditation.dateString)}
             </p>
           </div>
-        </div>
+        </>
       ) : (
-        <FallbackContent />
+        <FallbackCard />
       )}
 
-      {/* Active card highlight */}
+      {/* Active: hover overlay with "read" hint */}
       {isActive && (
-        <div className="absolute inset-0 pointer-events-none ring-2 ring-primary/30 rounded-lg" />
+        <div
+          className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+          style={{ backgroundColor: "oklch(0.10 0.02 240 / 0.5)" }}
+        >
+          <div
+            className="flex flex-col items-center gap-2 px-5 py-3 rounded"
+            style={{ backgroundColor: "oklch(0.10 0.02 240 / 0.7)" }}
+          >
+            <BookOpen className="w-6 h-6" style={{ color: "oklch(0.75 0.12 85)" }} />
+            <span
+              className="text-xs font-medium tracking-widest uppercase"
+              style={{ color: "oklch(0.85 0.05 85)" }}
+            >
+              Leer meditación
+            </span>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -4,7 +4,7 @@ export interface Meditation {
   subtitle: string;
   dateString: string; // ISO date string YYYY-MM-DD to avoid timezone issues
   excerpt: string;
-  imageUrl: string;
+  imageUrl?: string; // fetched dynamically from /api/meditation/[slug]
   slug: string;
 }
 
@@ -21,7 +21,7 @@ export function formatDateDisplay(dateString: string): string {
 }
 
 // All meditations from shaktianandama.com/meditaciones
-// Images are loaded from the website with consistent styling
+// imageUrl is intentionally empty — each card fetches the real image from /api/meditation/[slug]
 export const meditations: Meditation[] = [
   // 2026
   {
