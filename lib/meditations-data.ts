@@ -38,7 +38,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-04-09",
     excerpt: "Proponte hacia el respiro consciente, que esa sea tu propuesta para un momento así.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/04/MeditacionShaktiananda-2026-04-09.jpg",
     slug: "fuerzas-para-lo-que-soy"
   },
   {
@@ -47,7 +46,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-04-02",
     excerpt: "Haz que toda respiración despeje, concentrándote. Haz ese ejercicio, despejarte, y observa lo que te produce tu visión interna.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/04/MeditacionShaktiananda-2026-04-02.jpg",
     slug: "cada-vida-es-el-ser"
   },
   {
@@ -56,7 +54,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-03-26",
     excerpt: "Simplemente recuérdate de ti e instálate ahí, respiro a respiro, en concentración, hazte presente, visualiza tu cuerpo.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/03/MeditacionShaktiananda-2026-03-26.jpg",
     slug: "soy-esto-y-me-prometo-mas"
   },
   {
@@ -65,7 +62,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-03-19",
     excerpt: "Om Gam Ganapataye Namaha. Mantra sí, mantra, mantra. ¿Qué tanto crees me dice a mí y qué tanto a ti?",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/03/MeditacionShaktiananda-2026-03-19.jpg",
     slug: "entrega-pureza-y-verdad"
   },
   {
@@ -74,7 +70,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-03-12",
     excerpt: "Haz cada respiro sereno, muy conscientemente. Obsérvate paciente y amorosamente respirar.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/03/MeditacionShaktiananda-2026-03-12.jpg",
     slug: "tengo-un-alma-entusiasta"
   },
   {
@@ -83,7 +78,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-03-05",
     excerpt: "Recurre siempre a tu respiro, obsérvate bien ahora y respira como quieres respirar.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/03/MeditacionShaktiananda-2026-03-05.jpg",
     slug: "permanece-fiel-a-la-luz"
   },
   {
@@ -92,7 +86,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-02-26",
     excerpt: "Haz tus respiraciones abdominales muy conscientemente y haz absorción de todo cuanto necesitas.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/02/MeditacionShaktiananda-2026-02-26.jpg",
     slug: "tu-magna-inmensidad"
   },
   {
@@ -101,7 +94,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-02-18",
     excerpt: "Simplemente recuérdate de ti e instálate ahí, respiro a respiro, en concentración.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/02/MeditacionShaktiananda-2026-02-18.jpg",
     slug: "convencete-de-tu-existencia"
   },
   {
@@ -110,7 +102,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-02-12",
     excerpt: "Observa cómo respiras, lleva tu respiro a una serenidad, sin expectativa, sin tensión.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/02/MeditacionShaktiananda-2026-02-12.jpg",
     slug: "produce-amor-desde-tu-calma"
   },
   {
@@ -119,7 +110,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-02-05",
     excerpt: "Relaja el rostro, los hombros y asiéntate bien ahí. Reposa. Hazte presente.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/02/MeditacionShaktiananda-2026-02-05.jpg",
     slug: "eres-pulso-latido-idea-y-accion"
   },
   {
@@ -128,7 +118,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-01-29",
     excerpt: "Crea el momento, hazte presente, haz registro de tu situacionalidad.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/01/MeditacionShaktiananda-2026-01-29.jpg",
     slug: "en-mi-quiero-respeto-y-verdad"
   },
   {
@@ -137,7 +126,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-01-22",
     excerpt: "Dispénsate toda la atención y obsérvate profundamente. Haz revisión de tu interno.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/01/MeditacionShaktiananda-2026-01-22.jpg",
     slug: "quien-sabe-respirar-ama"
   },
   {
@@ -146,7 +134,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-01-15",
     excerpt: "Hazte presente con el respiro. Hazte presente y haz que el presente sea en ti.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/01/MeditacionShaktiananda-2026-01-15.jpg",
     slug: "lo-mas-valiente-de-ti-es-tu-alma"
   },
   {
@@ -155,7 +142,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-01-08",
     excerpt: "El respiro profundo, sereno, que te llegue, que lo sientas.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/01/MeditacionShaktiananda-2026-01-08.jpg",
     slug: "obra-con-dignidad"
   },
   // 2025
@@ -165,7 +151,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-12-18",
     excerpt: "Permanece atento a tu respiración, a lo consciente que la haces.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/12/MeditacionShaktiananda-2025-12-18.jpg",
     slug: "el-alma-resiste-sin-resentir"
   },
   {
@@ -174,7 +159,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-12-11",
     excerpt: "Mantén el respiro para sostener lo logrado. Observa cada respiro y profundízalo.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/12/MeditacionShaktiananda-2025-12-11.jpg",
     slug: "pide-luz-para-esta-tierra"
   },
   {
@@ -183,7 +167,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-12-04",
     excerpt: "Observa el respiro. Pronuncia cada respiro en ti y haz que sea un disfrute.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/12/MeditacionShaktiananda-2025-12-04.jpg",
     slug: "quiero-todo-lo-que-soy"
   },
   {
@@ -192,7 +175,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-11-27",
     excerpt: "Atiende el respiro, céntrate ahí y obsérvate. Ve percibiendo cómo estás.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/11/MeditacionShaktiananda-2025-11-27.jpg",
     slug: "elige-respirar-por-tu-vida"
   },
   {
@@ -201,7 +183,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-11-20",
     excerpt: "El rostro altivo en tu presente, dando la cara, y tu pecho abierto, que describa tu alma.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/11/MeditacionShaktiananda-2025-11-20.jpg",
     slug: "firme-es-mi-verdad"
   },
   {
@@ -210,7 +191,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-11-13",
     excerpt: "Saludo y agradezco a tu divinidad, a tu alma atenta y abierta.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/11/MeditacionShaktiananda-2025-11-13.jpg",
     slug: "mi-fuerza-soy"
   },
   {
@@ -219,7 +199,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-11-06",
     excerpt: "Llevas tu respiro a tu pronunciamiento consciente. Que lo que expresas en este instante sea solo tu respiro.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/11/MeditacionShaktiananda-2025-11-06.jpg",
     slug: "la-fe-se-logra"
   },
   {
@@ -228,7 +207,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-10-30",
     excerpt: "Te visualizas ahí donde estás, dibujándote con la mejor idea que tengas de ti.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/10/MeditacionShaktiananda-2025-10-30.jpg",
     slug: "reserva-fuerzas-de-tus-buenas-obras"
   },
   {
@@ -237,7 +215,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-10-23",
     excerpt: "Concéntrate en el respiro y cuida su tránsito. Si alcanzas, visualiza su recorrido.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/10/MeditacionShaktiananda-2025-10-23.jpg",
     slug: "se-implacable-con-la-oscuridad"
   },
   {
@@ -246,7 +223,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-10-16",
     excerpt: "Hazte presente y observa atentamente tu respiración. Asimismo ubícate bien en ti.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/10/MeditacionShaktiananda-2025-10-16.jpg",
     slug: "proclama-paz-y-dispensa-amor"
   },
   {
@@ -255,7 +231,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-10-09",
     excerpt: "Estás aquí hoy. Asegúrate de estar aquí, de sentirte aquí, de saberte en ti.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/10/MeditacionShaktiananda-2025-10-09.jpg",
     slug: "entrega-es-alma-en-regocijo"
   },
   {
@@ -264,7 +239,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-10-02",
     excerpt: "El cuerpo aplomado, bien centrado. Visualízate en una postura perfecta.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/10/MeditacionShaktiananda-2025-10-02.jpg",
     slug: "odiseas-para-expresar-al-ser"
   },
   {
@@ -273,7 +247,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-09-25",
     excerpt: "Hazte consciente del respiro, cada inhalación, firme y sentida.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/09/MeditacionShaktiananda-2025-09-25.jpg",
     slug: "ya-no-pregunto-se-que-me-amas"
   },
   {
@@ -282,7 +255,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-09-18",
     excerpt: "Haciendo tu esfuerzo, produce la respiración desde el abdomen.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/09/MeditacionShaktiananda-2025-09-18.jpg",
     slug: "conducto-y-fuente-de-tu-fuerza"
   },
   {
@@ -291,7 +263,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-09-11",
     excerpt: "Dale un ritmo a tu respiro, si quieres juega profundamente a sentirlo.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/09/MeditacionShaktiananda-2025-09-11.jpg",
     slug: "sabes-bien-lo-que-necesitas-liberar"
   },
   {
@@ -300,7 +271,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-09-04",
     excerpt: "Respira con cierta intensidad, tanto para inhalar como para exhalar.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/09/MeditacionShaktiananda-2025-09-04.jpg",
     slug: "revisa-tu-relacion-contigo"
   },
   {
@@ -309,7 +279,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-08-28",
     excerpt: "Abre esta meditación con respiros serenos, profundos, ubicándote en lo que tu Ser es.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/08/MeditacionShaktiananda-2025-08-28.jpg",
     slug: "ser-la-accion-de-amar"
   },
   {
@@ -318,7 +287,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-08-21",
     excerpt: "Alimenta sanamente tu respiro, depurando pensamientos.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/08/MeditacionShaktiananda-2025-08-21.jpg",
     slug: "entregate-a-lo-que-realmente-eres"
   },
   {
@@ -327,7 +295,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-08-14",
     excerpt: "Haz con tu respiro que todo se integre a ti y que tú te integres a todo.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/08/MeditacionShaktiananda-2025-08-14.jpg",
     slug: "el-juego-limpio-del-alma"
   },
   {
@@ -336,7 +303,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-08-07",
     excerpt: "Haz contacto, en principio, con tu respiro. Cuando el contacto es consciente, se experimenta satisfacción.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/08/MeditacionShaktiananda-2025-08-07.jpg",
     slug: "el-amoroso-acto-de-creerte"
   },
   {
@@ -345,7 +311,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-07-31",
     excerpt: "Abastécete plenamente de prana. Hasta la cualidad del aire se transforma con tu propia modulación.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/07/MeditacionShaktiananda-2025-07-31.jpg",
     slug: "demoler-lo-que-me-atrapa"
   },
   {
@@ -354,7 +319,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-07-24",
     excerpt: "Hazte consciente del momento, de lo que estás haciendo. Marca un eje, un centro, un foco.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/07/MeditacionShaktiananda-2025-07-24.jpg",
     slug: "acato-el-silencio-y-habito-el-vacio"
   },
   {
@@ -363,7 +327,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-07-17",
     excerpt: "El respiro constante, consciente, haciendo buen registro de lo que tu respiro es.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/07/MeditacionShaktiananda-2025-07-17.jpg",
     slug: "tus-ciclos-son-obstrucciones"
   },
   {
@@ -372,7 +335,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-07-10",
     excerpt: "Tú no busques nada, que te encuentre tu respiro. Así que déjate ganar por tu respiro.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/07/MeditacionShaktiananda-2025-07-10.jpg",
     slug: "valiente-formula-amor-y-silencio"
   },
   {
@@ -381,7 +343,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-07-03",
     excerpt: "Has venido y, antes que nada, tal y como te agradeces, te agradezco.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/07/MeditacionShaktiananda-2025-07-03.jpg",
     slug: "un-fractal-consciente"
   },
   {
@@ -390,7 +351,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-06-26",
     excerpt: "Busca siempre estabilizarte respirando, haz control amoroso de lo que tu respiro es.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/06/MeditacionShaktiananda-2025-06-26.jpg",
     slug: "logra-amor-y-entregate"
   },
   {
@@ -399,7 +359,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-06-19",
     excerpt: "Atiendo el tono y permito que me inunde, que se introduzca en mi.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/06/MeditacionShaktiananda-2025-06-19.jpg",
     slug: "soy-en-la-voluntad-del-ser"
   },
   {
@@ -408,7 +367,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-06-12",
     excerpt: "Sigue revisando un poco tu postura, tu actitud, y podría decirte que hasta tu ánimo.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/06/MeditacionShaktiananda-2025-06-12.jpg",
     slug: "clamo-por-ser-lo-que-soy"
   },
   {
@@ -417,7 +375,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-06-05",
     excerpt: "Percíbete ahí donde estás, haciendo presencia. Haz consciente cómo estableces tu Ser.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/06/MeditacionShaktiananda-2025-06-05.jpg",
     slug: "mi-forma-de-sanar"
   },
   {
@@ -426,7 +383,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-05-29",
     excerpt: "Hazte presente, sitúate acá, haz una breve introducción íntima.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/05/MeditacionShaktiananda-2025-05-29.jpg",
     slug: "conciencia-eres-aunque-finjas"
   },
   {
@@ -435,7 +391,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-05-22",
     excerpt: "Si es que tienes, si es que has traído, preservas, conservas, algún murti que me represente.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/05/MeditacionShaktiananda-2025-05-22.jpg",
     slug: "ocupate-en-obrar-en-bien"
   },
   {
@@ -444,7 +399,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-05-15",
     excerpt: "Te concentras en tu respiración y en el tono, te centras ahí, permitiéndote vibrar.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/05/MeditacionShaktiananda-2025-05-15.jpg",
     slug: "soy-presente-en-luz"
   },
   {
@@ -453,7 +407,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-05-08",
     excerpt: "Antes de comenzar, hago un humilde llamado a San Miguel Arcángel.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/05/MeditacionShaktiananda-2025-05-08.jpg",
     slug: "tu-voluntad-de-contacto"
   },
   {
@@ -462,7 +415,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-05-01",
     excerpt: "Refléjate en tu respiro y haz que él se refleje en ti.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/05/MeditacionShaktiananda-2025-05-01.jpg",
     slug: "nunca-mas-elijas-esto"
   },
   {
@@ -471,7 +423,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-04-24",
     excerpt: "Visualízate un instante ahí donde estás, debes saberte en tu compañía.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/04/MeditacionShaktiananda-2025-04-24.jpg",
     slug: "hago-registro-de-mi-amor"
   },
   {
@@ -480,7 +431,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-04-17",
     excerpt: "Que nuestra cita sea productiva, como siempre, desde lo que hemos entendido.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/04/MeditacionShaktiananda-2025-04-17.jpg",
     slug: "cuando-eres-en-bien-superas-todo"
   },
   {
@@ -489,7 +439,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-04-10",
     excerpt: "Concéntrate en el tono y en tu respiración. Perdona hoy nuestros recursos.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/04/MeditacionShaktiananda-2025-04-10.jpg",
     slug: "nos-hemos-elegido-para-acompanarnos"
   },
   {
@@ -498,7 +447,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-04-03",
     excerpt: "Respira sin temor, sin dudas, sin ansiedad. Más bien, relájate y concéntrate en tu respiro.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/04/MeditacionShaktiananda-2025-04-03.jpg",
     slug: "madre-perdoname-madre-bendiceme"
   },
   {
@@ -507,7 +455,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-03-27",
     excerpt: "¿Estás respirando? Es que a veces parecieras que no lo sientes.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/03/MeditacionShaktiananda-2025-03-27.jpg",
     slug: "shiva-una-fuerza-en-tu-ser"
   },
   {
@@ -516,7 +463,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-03-20",
     excerpt: "Alcanza a mantener una respiración firme y consciente.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/03/MeditacionShaktiananda-2025-03-20.jpg",
     slug: "celebrar-lo-que-esta-vida-es"
   },
   {
@@ -525,7 +471,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-03-13",
     excerpt: "¿Me cuentas cómo estás? En un breve pensamiento acércame.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/03/MeditacionShaktiananda-2025-03-13.jpg",
     slug: "meditas-para-amarte-y-restarte-maldad"
   },
   {
@@ -534,7 +479,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-03-06",
     excerpt: "Concéntrate. Se trata de que te centres en ti, priorizando atención en el respiro.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/03/MeditacionShaktiananda-2025-03-06.jpg",
     slug: "conciencia-mia-respira-en-mi"
   },
   {
@@ -543,7 +487,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-02-27",
     excerpt: "Con tu propio respiro invoca a tu Ser, lo que sientas eres, lo que creas eres.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/02/MeditacionShaktiananda-2025-02-27.jpg",
     slug: "la-cuenta-regresiva-a-tu-retorno"
   },
   {
@@ -552,7 +495,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-02-20",
     excerpt: "Atiende solo tu respiro, concéntrate. Sensibilízate a esta acción.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/02/MeditacionShaktiananda-2025-02-20.jpg",
     slug: "resiste-con-fuerza-tu-lado-negador"
   },
   {
@@ -561,7 +503,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-02-13",
     excerpt: "Haz mentalmente un recorrido breve de tu trayecto hasta aquí.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/02/MeditacionShaktiananda-2025-02-13.jpg",
     slug: "resuelve-todo-para-amarte-mas"
   },
   {
@@ -570,7 +511,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-02-06",
     excerpt: "Amado Ser, tú que estás de alguna manera tan cerca.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/02/MeditacionShaktiananda-2025-02-06.jpg",
     slug: "cuando-ocurre-el-ser"
   },
   {
@@ -579,7 +519,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-01-30",
     excerpt: "Haz cada respiro consciente, sabiendo exactamente lo que inhalas.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/01/MeditacionShaktiananda-2025-01-30.jpg",
     slug: "no-te-contamines-respetate-mas"
   },
   {
@@ -588,7 +527,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-01-23",
     excerpt: "Busco mantener una respiración sutil, sublime, suave.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/01/MeditacionShaktiananda-2025-01-23.jpg",
     slug: "no-oculto-el-temor-lo-resuelvo"
   },
   {
@@ -597,7 +535,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-01-16",
     excerpt: "Concéntrate en la respiración, ocúpate de eso, en este momento, de nada más.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/01/MeditacionShaktiananda-2025-01-16.jpg",
     slug: "un-juego-en-el-que-siempre-ganas"
   },
   {
@@ -606,7 +543,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2025-01-09",
     excerpt: "Atiende solo tu respiro, concéntrate y sensibilízate a esta acción.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2025/01/MeditacionShaktiananda-2025-01-09.jpg",
     slug: "ganate-tu-propia-confianza"
   },
   // 2024
@@ -616,7 +552,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-12-19",
     excerpt: "Solamente produce los respiros exactos que necesites para este momento.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/12/MeditacionShaktiananda-2024-12-19.jpg",
     slug: "existo-en-la-conciencia-y-en-mi-verdad"
   },
   {
@@ -625,7 +560,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-12-12",
     excerpt: "Respira en firme, respira constante, respira conscientemente. Céntrate ahí.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/12/MeditacionShaktiananda-2024-12-12.jpg",
     slug: "respira-hasta-estallar-y-ser-aquello"
   },
   {
@@ -634,7 +568,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-12-05",
     excerpt: "¿Cuántos respiros podrías atender? ¿Cuántos? Pero atiende al tuyo.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/12/MeditacionShaktiananda-2024-12-05.jpg",
     slug: "si-tu-alma-duele-transformate"
   },
   {
@@ -643,7 +576,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-11-28",
     excerpt: "Respira en orden, respira en tu orden, en tu sistema tan perfecto.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/11/MeditacionShaktiananda-2024-11-28.jpg",
     slug: "clama-por-tu-orden"
   },
   {
@@ -652,7 +584,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-11-21",
     excerpt: "Observa cómo estás, percíbete, ¿cómo te sientes?",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/11/MeditacionShaktiananda-2024-11-21.jpg",
     slug: "soy-el-universo-todo"
   },
   {
@@ -661,7 +592,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-11-14",
     excerpt: "Sería oportuno y prudente que pronuncies internamente tu nombre.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/11/MeditacionShaktiananda-2024-11-14.jpg",
     slug: "viniste-al-planeta-a-saber-amar"
   },
   {
@@ -670,7 +600,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-11-07",
     excerpt: "Guarda entera concentración en tu respiración, a tu ritmo natural.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/11/MeditacionShaktiananda-2024-11-07.jpg",
     slug: "cuando-el-proposito-te-alcanza"
   },
   {
@@ -679,7 +608,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-10-31",
     excerpt: "¿Sabes lo que viene bien de vez en cuando? Que creas nacer.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/10/MeditacionShaktiananda-2024-10-31.jpg",
     slug: "que-nazca-en-mi-lo-que-soy"
   },
   {
@@ -688,7 +616,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-10-24",
     excerpt: "Haz el ejercicio de mirar adentro, sin presión, sin tensión.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/10/MeditacionShaktiananda-2024-10-24.jpg",
     slug: "se-libre-hasta-de-ti"
   },
   {
@@ -697,7 +624,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-10-17",
     excerpt: "Trata de estar lo más presente posible, y eso lo logras respirando conscientemente.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/10/MeditacionShaktiananda-2024-10-17.jpg",
     slug: "si-estas-aqui-es-porque-crees-en-la-luz"
   },
   {
@@ -706,7 +632,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-10-10",
     excerpt: "Reverencio al Padre Supremo, Señor Rudra. Reverencio tu ira.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/10/MeditacionShaktiananda-2024-10-10.jpg",
     slug: "rudra-expresate-en-mi"
   },
   {
@@ -715,7 +640,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-10-03",
     excerpt: "En este momento me dispongo a hacer justo lo que quiero.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/10/MeditacionShaktiananda-2024-10-03.jpg",
     slug: "guardo-la-ley-y-la-ley-me-guarda"
   },
   {
@@ -724,7 +648,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-09-26",
     excerpt: "Siempre que te propongas hacer este ejercicio, llámalo como puedas.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/09/MeditacionShaktiananda-2024-09-26.jpg",
     slug: "tu-mundo-mas-libre"
   },
   {
@@ -733,7 +656,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-09-19",
     excerpt: "Ante el compromiso de vida, queda respirar.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/09/MeditacionShaktiananda-2024-09-19.jpg",
     slug: "tu-compromiso-es-amarte"
   },
   {
@@ -742,7 +664,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-09-12",
     excerpt: "Atiende la actitud, la voluntad, la intención y céntrate en tu respiro.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/09/MeditacionShaktiananda-2024-09-12.jpg",
     slug: "coincidir-reconocer-y-amar-mas"
   },
   {
@@ -751,7 +672,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-09-05",
     excerpt: "Disponte, toma aliento y proponte a respirar.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/09/MeditacionShaktiananda-2024-09-05.jpg",
     slug: "conciencia-en-el-hermoso-vacio"
   },
   {
@@ -760,7 +680,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-08-29",
     excerpt: "Cuando respiras así, ¿cómo te sientes? ¿Crees que logras alguna serenidad?",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/08/MeditacionShaktiananda-2024-08-29.jpg",
     slug: "tu-respiro-es-la-formula-perfecta"
   },
   {
@@ -769,7 +688,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-08-22",
     excerpt: "Brevemente me reviso, me percibo y, cualquier alteración, cualquier incomodidad.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/08/MeditacionShaktiananda-2024-08-22.jpg",
     slug: "respiras-para-vivir-o-para-morir"
   },
   {
@@ -778,7 +696,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-08-15",
     excerpt: "¿Qué tanto le pides al Universo y qué tanto le das?",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/08/MeditacionShaktiananda-2024-08-15.jpg",
     slug: "pide-fuerzas-valor-constancia-y-entrega-mayor"
   },
   {
@@ -787,7 +704,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-08-08",
     excerpt: "Empieza a animarte. Haz que tus respiros te den ánimo.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/08/MeditacionShaktiananda-2024-08-08.jpg",
     slug: "la-verdad-anima-mas"
   },
   {
@@ -796,7 +712,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-08-01",
     excerpt: "Relaja el rostro, sintiéndote en complacencia.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/08/MeditacionShaktiananda-2024-08-01.jpg",
     slug: "preservate-integro"
   },
   {
@@ -805,7 +720,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-07-25",
     excerpt: "Permíteme un juego: abrirás brevemente los ojos.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/07/MeditacionShaktiananda-2024-07-25.jpg",
     slug: "esta-vida-para-este-encuentro"
   },
   {
@@ -814,7 +728,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-07-18",
     excerpt: "Búscate hasta que te encuentres respirando plácidamente.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/07/MeditacionShaktiananda-2024-07-18.jpg",
     slug: "todo-lo-que-crees-existe-no-es"
   },
   {
@@ -823,7 +736,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-07-11",
     excerpt: "Atiende tu respiro con profunda concentración.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/07/MeditacionShaktiananda-2024-07-11.jpg",
     slug: "hago-una-proclama-eterna"
   },
   {
@@ -832,7 +744,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-07-04",
     excerpt: "Atiende tu respiro, céntrate ahí y observa cómo respiras.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/07/MeditacionShaktiananda-2024-07-04.jpg",
     slug: "ejerce-el-poder-de-amarte"
   },
   {
@@ -841,7 +752,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-06-27",
     excerpt: "Respira sosegada y profundamente, a tu aire, en tus tiempos.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/06/MeditacionShaktiananda-2024-06-27.jpg",
     slug: "renuncia-al-desamor"
   },
   {
@@ -850,7 +760,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-06-20",
     excerpt: "Te vas aquietando con lo que tu respiro es.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/06/MeditacionShaktiananda-2024-06-20.jpg",
     slug: "si-te-atreves-te-liberas"
   },
   {
@@ -859,7 +768,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-06-13",
     excerpt: "Ratifícate haciendo presencia con tu respiro consciente.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/06/MeditacionShaktiananda-2024-06-13.jpg",
     slug: "madre-hago-presencia-en-ti"
   },
   {
@@ -868,7 +776,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-06-06",
     excerpt: "Tu confianza en tu respiro, en lo fluido, en lo constante.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/06/MeditacionShaktiananda-2024-06-06.jpg",
     slug: "me-brindo-mi-respiro-y-mi-amor"
   },
   {
@@ -877,7 +784,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-05-30",
     excerpt: "Atiende tu respiro, que lo único que te ocupe sea ese respirar.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/05/MeditacionShaktiananda-2024-05-30.jpg",
     slug: "quiero-quererme-necesito-quererme"
   },
   {
@@ -886,7 +792,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-05-23",
     excerpt: "Empieza tus respiros, consciente como eres, presente como estás.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/05/MeditacionShaktiananda-2024-05-23.jpg",
     slug: "mi-propuesta-es-amar"
   },
   {
@@ -895,7 +800,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-05-16",
     excerpt: "Es tan simple lo que tienes que hacer, saber estar ahí.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/05/MeditacionShaktiananda-2024-05-16.jpg",
     slug: "decide-tu-luz-es-posible"
   },
   {
@@ -904,7 +808,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-05-09",
     excerpt: "En cualquier parte que esté, desde donde quiera que te hable.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/05/MeditacionShaktiananda-2024-05-09.jpg",
     slug: "rindete-y-produce-lo-que-eres-luz-y-verdad"
   },
   {
@@ -913,7 +816,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-05-02",
     excerpt: "Concéntrate en respirar, apartando pensamientos, remembranzas.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/05/MeditacionShaktiananda-2024-05-02.jpg",
     slug: "arde-en-luz-siempre-en-luz"
   },
   {
@@ -922,7 +824,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-04-25",
     excerpt: "Por el día, haz un recorrido interno, desde tus circuitos de luz.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/04/MeditacionShaktiananda-2024-04-25.jpg",
     slug: "a-amar-se-aprende"
   },
   {
@@ -931,7 +832,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-04-18",
     excerpt: "Notifica tu presencia, hazte saber que estás aquí.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/04/MeditacionShaktiananda-2024-04-18.jpg",
     slug: "aprecia-tus-latidos-y-libera-amor"
   },
   {
@@ -940,7 +840,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-04-11",
     excerpt: "Respira con serenidad y pulcritud. Que cada respiro sea consciente.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/04/MeditacionShaktiananda-2024-04-11.jpg",
     slug: "tu-fruto-mas-preciado-es-tu-verdad"
   },
   {
@@ -949,7 +848,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-04-04",
     excerpt: "¿Qué deberías considerar cuando estás así, cuando te sientes así?",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/04/MeditacionShaktiananda-2024-04-04.jpg",
     slug: "meditar-es-la-accion-mas-sublime"
   },
   {
@@ -958,7 +856,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-03-28",
     excerpt: "Observa bien con cuál disposición llegas aquí. ¿Qué te trae?",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/03/MeditacionShaktiananda-2024-03-28.jpg",
     slug: "en-este-mundo-haz-el-bien-y-aprende-a-amar"
   },
   {
@@ -967,7 +864,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-03-21",
     excerpt: "Te concentras, haciendo cada respiro como si fuese el primero.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/03/MeditacionShaktiananda-2024-03-21.jpg",
     slug: "guardate-para-tu-ultimo-respiro"
   },
   {
@@ -976,7 +872,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-03-14",
     excerpt: "Hazte un espacio de fuerza y energía propia.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/03/MeditacionShaktiananda-2024-03-14.jpg",
     slug: "expon-tu-sombra-para-no-perderte"
   },
   {
@@ -985,7 +880,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-03-07",
     excerpt: "Hazte presente respirando, donde quiera que estés.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/03/MeditacionShaktiananda-2024-03-07.jpg",
     slug: "te-juegas-la-vida-para-ganar-en-luz"
   },
   {
@@ -994,7 +888,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-02-29",
     excerpt: "Alcanza cada respiro y, que te alcance, para que puedas gestionar todos tus fluidos internos.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/02/MeditacionShaktiananda-2024-02-29.jpg",
     slug: "eres-la-expresion-pura-del-ser"
   },
   {
@@ -1003,7 +896,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-02-22",
     excerpt: "Visualízate desde muy adentro, estando ahí. Visualiza tu figura, tu postura.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/02/MeditacionShaktiananda-2024-02-22.jpg",
     slug: "se-que-puedo-se-que-estoy-se-que-soy"
   },
   {
@@ -1012,7 +904,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2024-02-15",
     excerpt: "Hazte en tu atención, como debería ser siempre en un momento así.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2024/02/MeditacionShaktiananda-2024-02-15.jpg",
     slug: "silencios-que-liberan-silencios-que-condenan"
   }
 ];
