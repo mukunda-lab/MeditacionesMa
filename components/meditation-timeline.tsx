@@ -14,6 +14,7 @@ interface APIMeditation {
   slug: string;
   dateString: string;
   excerpt: string;
+  content: string;
   imageUrl: string | null;
   link: string;
   language?: "es" | "it" | "en";
@@ -24,6 +25,17 @@ interface MeditationGroup {
   primary: APIMeditation;
   translations: APIMeditation[];
 }
+
+const CATEGORIES = [
+  { id: "silencio",   label: "Silencio",    keywords: ["silencio", "quietud", "calma", "serenidad", "tranquil", "reposo", "sosiego"] },
+  { id: "amor",       label: "Amor",        keywords: ["amor", "corazón", "compasión", "bondad", "ternura", "afecto", "amoroso"] },
+  { id: "respiracion",label: "Respiración", keywords: ["respiración", "respirar", "pranayama", "aliento", "inhala", "exhala", "soplo"] },
+  { id: "energia",    label: "Energía",     keywords: ["chakra", "energía", "kundalini", "prana", "vibración", "shakti"] },
+  { id: "presencia",  label: "Presencia",   keywords: ["presencia", "conciencia", "atención", "momento", "ahora", "despertar", "testigo"] },
+  { id: "mantra",     label: "Mantra",      keywords: ["mantra", "om", "aum", "sonido", "sagrado", "recitación", "invocación"] },
+  { id: "naturaleza", label: "Naturaleza",  keywords: ["naturaleza", "tierra", "agua", "fuego", "aire", "luz", "luna", "sol", "cielo"] },
+  { id: "devocion",   label: "Devoción",    keywords: ["devoción", "oración", "gratitud", "gracia", "divino", "guru", "fe", "bhakti"] },
+] as const;
 
 export function MeditationTimeline() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -37,6 +49,8 @@ export function MeditationTimeline() {
   const [isLoading, setIsLoading] = useState(true);
   const [contentVisible, setContentVisible] = useState(false);
   const [serendipiaAnimating, setSerendipiaAnimating] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineTrackRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
@@ -130,6 +144,7 @@ export function MeditationTimeline() {
           slug: string;
           title: { rendered: string };
           excerpt: { rendered: string };
+          content?: { rendered: string };
           link: string;
           _embedded?: {
             "wp:featuredmedia"?: Array<{
@@ -168,6 +183,7 @@ export function MeditationTimeline() {
             slug,
             dateString: post.date.split("T")[0],
             excerpt: post.excerpt.rendered.replace(/<[^>]+>/g, "").replace(/&[^;]+;/g, " ").trim().slice(0, 300),
+            content: (post.content?.rendered || "").replace(/<[^>]+>/g, "").replace(/&[^;]+;/g, " ").trim().slice(0, 3000),
             imageUrl,
             link: post.link,
             language,
@@ -237,6 +253,7 @@ export function MeditationTimeline() {
           subtitle: "Meditación con Mataji Shaktiananda",
           dateString: g.primary.dateString,
           excerpt: g.primary.excerpt,
+          content: (g.primary as any).content ?? "",
           imageUrl: g.primary.imageUrl || undefined,
           slug: g.primary.slug,
           translations: g.translations,
@@ -247,10 +264,40 @@ export function MeditationTimeline() {
     return [...fallbackMeditations].sort((a, b) => b.dateString.localeCompare(a.dateString));
   }, [groupedMeditations]);
 
+  // Apply category + search filters
+  const filteredMeditations = useMemo(() => {
+    let result = sortedMeditations as (Meditation & { translations?: any[]; content?: string; excerpt?: string })[];
+
+    if (activeCategory) {
+      const cat = CATEGORIES.find(c => c.id === activeCategory);
+      if (cat) {
+        result = result.filter(m => {
+          const text = `${m.title} ${(m as any).excerpt ?? ""} ${(m as any).content ?? ""}`.toLowerCase();
+          return cat.keywords.some(kw => text.includes(kw));
+        });
+      }
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(m => {
+        const text = `${m.title} ${(m as any).excerpt ?? ""} ${(m as any).content ?? ""}`.toLowerCase();
+        return text.includes(q);
+      });
+    }
+
+    return result;
+  }, [sortedMeditations, activeCategory, searchQuery]);
+
+  // Reset carousel position when filter changes
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [activeCategory, searchQuery]);
+
   const scrollToIndex = useCallback((index: number) => {
-    const clampedIndex = Math.max(0, Math.min(index, sortedMeditations.length - 1));
+    const clampedIndex = Math.max(0, Math.min(index, filteredMeditations.length - 1));
     setActiveIndex(clampedIndex);
-  }, [sortedMeditations.length]);
+  }, [filteredMeditations.length]);
 
   const handlePrev = useCallback(() => scrollToIndex(activeIndex - 1), [activeIndex, scrollToIndex]);
   const handleNext = useCallback(() => scrollToIndex(activeIndex + 1), [activeIndex, scrollToIndex]);
@@ -270,7 +317,7 @@ export function MeditationTimeline() {
     const x = e.pageX - cardsContainerRef.current.offsetLeft;
     const walk = (startX - x) / 150;
     const newIndex = Math.round(scrollLeft + walk);
-    if (newIndex !== activeIndex && newIndex >= 0 && newIndex < sortedMeditations.length) {
+    if (newIndex !== activeIndex && newIndex >= 0 && newIndex < filteredMeditations.length) {
       setActiveIndex(newIndex);
     }
   };
@@ -291,7 +338,7 @@ export function MeditationTimeline() {
     const x = e.touches[0].pageX - cardsContainerRef.current.offsetLeft;
     const walk = (startX - x) / 150;
     const newIndex = Math.round(scrollLeft + walk);
-    if (newIndex !== activeIndex && newIndex >= 0 && newIndex < sortedMeditations.length) {
+    if (newIndex !== activeIndex && newIndex >= 0 && newIndex < filteredMeditations.length) {
       setActiveIndex(newIndex);
     }
   };
@@ -304,9 +351,9 @@ export function MeditationTimeline() {
     const rect = timelineTrackRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, x / rect.width));
-    const newIndex = Math.round(percentage * (sortedMeditations.length - 1));
+    const newIndex = Math.round(percentage * (filteredMeditations.length - 1));
     setActiveIndex(newIndex);
-  }, [sortedMeditations.length]);
+  }, [filteredMeditations.length]);
 
   const handleTimelineMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -396,23 +443,23 @@ export function MeditationTimeline() {
 
   // Stable per-card tilt values (seeded by id so consistent across renders)
   const cardTilts = useMemo(() => {
-    return sortedMeditations.map((m) => {
+    return filteredMeditations.map((m) => {
       // deterministic tilt from id: small values between -1.5 and 1.5 degrees
       const seed = m.id % 31;
       return ((seed - 15) / 15) * 1.5;
     });
-  }, [sortedMeditations]);
+  }, [filteredMeditations]);
 
   // Year positions
   const getYearPositions = () => {
     const positions: { year: number; position: number; index: number }[] = [];
     let currentYear = -1;
-    sortedMeditations.forEach((meditation, index) => {
+    filteredMeditations.forEach((meditation, index) => {
       const year = parseInt(meditation.dateString.split('-')[0]);
       if (year !== currentYear) {
         positions.push({
           year,
-          position: (index / (sortedMeditations.length - 1)) * 100,
+          position: (index / (filteredMeditations.length - 1)) * 100,
           index,
         });
         currentYear = year;
@@ -429,11 +476,11 @@ export function MeditationTimeline() {
   };
 
   const yearPositions = getYearPositions();
-  const progressPercentage = sortedMeditations.length > 1
-    ? (activeIndex / (sortedMeditations.length - 1)) * 100
+  const progressPercentage = filteredMeditations.length > 1
+    ? (activeIndex / (filteredMeditations.length - 1)) * 100
     : 0;
 
-  const activeMeditation: Meditation = sortedMeditations[activeIndex];
+  const activeMeditation: Meditation = filteredMeditations[activeIndex] as Meditation;
 
   // Show loading state while fetching real data
   if (isLoading) {
@@ -533,7 +580,7 @@ export function MeditationTimeline() {
           onPrev={() => { scrollToIndex(activeIndex - 1); }}
           onNext={() => { scrollToIndex(activeIndex + 1); }}
           hasPrev={activeIndex > 0}
-          hasNext={activeIndex < sortedMeditations.length - 1}
+          hasNext={activeIndex < filteredMeditations.length - 1}
         />
       )}
 
@@ -550,6 +597,88 @@ export function MeditationTimeline() {
         </p>
       </header>
 
+      {/* Search bar */}
+      <div className="flex justify-center px-4 mb-4">
+        <div className="relative w-full max-w-md">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            style={{ color: "oklch(0.55 0.04 80)" }}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+              d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar meditación..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-sm font-light tracking-wide outline-none"
+            style={{
+              background: "oklch(0.97 0.015 80)",
+              border: "1px solid oklch(0.80 0.04 80 / 0.5)",
+              borderRadius: "2px",
+              color: "oklch(0.30 0.03 80)",
+            }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
+              style={{ color: "oklch(0.55 0.04 80)" }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Category filters */}
+      <div className="flex justify-center px-4 mb-6">
+        <div className="flex flex-wrap justify-center gap-2">
+          {CATEGORIES.map(cat => {
+            const isActive = activeCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(isActive ? null : cat.id)}
+                className="px-4 py-1.5 text-xs font-light tracking-[0.15em] uppercase transition-all duration-200"
+                style={{
+                  borderRadius: "2px",
+                  border: isActive
+                    ? "1px solid oklch(0.40 0.08 80)"
+                    : "1px solid oklch(0.75 0.04 80 / 0.6)",
+                  backgroundColor: isActive
+                    ? "oklch(0.40 0.08 80)"
+                    : "oklch(0.97 0.015 80)",
+                  color: isActive
+                    ? "oklch(0.97 0.015 80)"
+                    : "oklch(0.45 0.05 80)",
+                }}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* No results message */}
+      {filteredMeditations.length === 0 && (
+        <div className="text-center py-12">
+          <p className="font-serif text-lg" style={{ color: "oklch(0.55 0.04 80)" }}>
+            No se encontraron meditaciones
+          </p>
+          <button
+            onClick={() => { setActiveCategory(null); setSearchQuery(""); }}
+            className="mt-3 text-xs tracking-widest uppercase underline"
+            style={{ color: "oklch(0.50 0.06 80)" }}
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      )}
+
       {/* Cards Carousel */}
       <div className="relative flex-1 flex items-center justify-center py-8">
         <button
@@ -563,7 +692,7 @@ export function MeditationTimeline() {
 
         <button
           onClick={handleNext}
-          disabled={activeIndex === sortedMeditations.length - 1}
+          disabled={activeIndex === filteredMeditations.length - 1}
           className="absolute right-4 md:right-8 z-20 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
           aria-label="Siguiente meditación"
         >
@@ -591,7 +720,7 @@ export function MeditationTimeline() {
             className="relative w-full max-w-5xl flex items-center justify-center"
             style={{ perspective: "1200px", transformStyle: "preserve-3d", height: "340px" }}
           >
-            {sortedMeditations.map((meditation, index) => {
+            {filteredMeditations.map((meditation, index) => {
               const offset = index - activeIndex;
               const absOffset = Math.abs(offset);
               if (absOffset > 4) return null;
@@ -655,7 +784,7 @@ export function MeditationTimeline() {
           <button
             onClick={() => {
               if (serendipiaAnimating) return;
-              const targetIndex = Math.floor(Math.random() * sortedMeditations.length);
+              const targetIndex = Math.floor(Math.random() * filteredMeditations.length);
               setSerendipiaAnimating(true);
               
               // Animate through cards to reach target
@@ -673,7 +802,7 @@ export function MeditationTimeline() {
                   return;
                 }
                 const nextIndex = Math.round(activeIndex + (direction * stepSize * currentStep));
-                setActiveIndex(Math.max(0, Math.min(nextIndex, sortedMeditations.length - 1)));
+                setActiveIndex(Math.max(0, Math.min(nextIndex, filteredMeditations.length - 1)));
                 setTimeout(animateStep, 80 - (currentStep * 2)); // Speed up gradually
               };
               
@@ -708,12 +837,12 @@ export function MeditationTimeline() {
         <div className="relative" style={{ height: "100px" }}>
           {/* Tick marks — rendered as absolute positioned bars anchored to bottom */}
           <div className="absolute inset-x-0" style={{ bottom: "28px", height: "56px" }}>
-            {sortedMeditations.map((meditation, i) => {
+            {filteredMeditations.map((meditation, i) => {
               const isYearStart = yearPositions.some((yp) => yp.index === i);
               const isActive = i === activeIndex;
               const isHovered = i === hoveredTickIndex;
-              const leftPct = sortedMeditations.length > 1
-                ? (i / (sortedMeditations.length - 1)) * 100
+              const leftPct = filteredMeditations.length > 1
+                ? (i / (filteredMeditations.length - 1)) * 100
                 : 0;
 
               // Base heights in px
@@ -877,7 +1006,7 @@ export function MeditationTimeline() {
                 const tooClose = shown.some(s => Math.abs(s.position - yp.position) < MIN_GAP_PCT);
                 if (!tooClose) shown.push(yp);
               }
-              const activeYear = parseInt(sortedMeditations[activeIndex]?.dateString?.split('-')[0]);
+              const activeYear = parseInt(filteredMeditations[activeIndex]?.dateString?.split('-')[0]);
               return shown.map(({ year, position, index }) => (
                 <button
                   key={year}
