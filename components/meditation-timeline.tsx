@@ -238,6 +238,48 @@ export function MeditationTimeline() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [activeIndex, readerOpen, handlePrev, handleNext]);
 
+  // Scroll to navigate cards
+  const scrollAccumulator = useRef(0);
+  const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleWheel = useCallback(
+    (e: WheelEvent) => {
+      if (readerOpen) return;
+      e.preventDefault();
+      scrollAccumulator.current += e.deltaY + e.deltaX;
+      // Throttle: only advance once per ~120px of scroll
+      if (Math.abs(scrollAccumulator.current) > 120) {
+        if (scrollAccumulator.current > 0) {
+          handleNext();
+        } else {
+          handlePrev();
+        }
+        scrollAccumulator.current = 0;
+      }
+      // Reset accumulator if user stops scrolling
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+      scrollTimeout.current = setTimeout(() => {
+        scrollAccumulator.current = 0;
+      }, 300);
+    },
+    [readerOpen, handleNext, handlePrev]
+  );
+
+  useEffect(() => {
+    const el = cardsContainerRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
+
+  // Stable per-card tilt values (seeded by id so consistent across renders)
+  const cardTilts = useMemo(() => {
+    return sortedMeditations.map((m) => {
+      // deterministic tilt from id: small values between -1.5 and 1.5 degrees
+      const seed = m.id % 31;
+      return ((seed - 15) / 15) * 1.5;
+    });
+  }, [sortedMeditations]);
+
   // Year positions
   const getYearPositions = () => {
     const positions: { year: number; position: number; index: number }[] = [];
@@ -336,8 +378,13 @@ export function MeditationTimeline() {
 
         <div
           ref={cardsContainerRef}
-          className="relative w-full h-[420px] md:h-[480px] flex items-center justify-center select-none"
-          style={{ cursor: isDragging ? "grabbing" : "grab" }}
+          className="relative w-full flex items-center justify-center select-none"
+          style={{
+            cursor: isDragging ? "grabbing" : "grab",
+            minHeight: "260px",
+            paddingTop: "40px",
+            paddingBottom: "40px",
+          }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -346,29 +393,34 @@ export function MeditationTimeline() {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="relative w-full max-w-4xl h-full flex items-center justify-center perspective-1000">
+          <div
+            className="relative w-full max-w-5xl flex items-center justify-center"
+            style={{ perspective: "1200px", transformStyle: "preserve-3d", height: "340px" }}
+          >
             {sortedMeditations.map((meditation, index) => {
               const offset = index - activeIndex;
               const absOffset = Math.abs(offset);
               if (absOffset > 4) return null;
 
-              const translateX = offset * 85;
-              const translateZ = -absOffset * 60;
-              const rotateY = offset * -8;
-              const scale = 1 - absOffset * 0.1;
-              const opacity = 1 - absOffset * 0.2;
+              const translateX = offset * 90;
+              const translateZ = -absOffset * 80;
+              const rotateY = offset * -10;
+              const scale = 1 - absOffset * 0.08;
+              const opacity = 1 - absOffset * 0.22;
               const zIndex = 10 - absOffset;
               const isActive = index === activeIndex;
 
               return (
                 <div
                   key={meditation.id}
-                  className="absolute transition-all duration-500 ease-out"
+                  className="absolute"
                   style={{
                     transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
                     opacity: Math.max(0, opacity),
                     zIndex,
                     cursor: isActive ? "pointer" : "default",
+                    transition: "transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.45s ease",
+                    willChange: "transform, opacity",
                   }}
                   onClick={() => {
                     if (isActive && !isDragging) {
@@ -378,7 +430,11 @@ export function MeditationTimeline() {
                     }
                   }}
                 >
-                  <MeditationCard meditation={meditation} isActive={isActive} />
+                  <MeditationCard
+                    meditation={meditation}
+                    isActive={isActive}
+                    tilt={cardTilts[index] ?? 0}
+                  />
                 </div>
               );
             })}
