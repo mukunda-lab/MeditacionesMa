@@ -8,14 +8,17 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export function MeditationTimeline() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isTimelineDragging, setIsTimelineDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [hoveredTickIndex, setHoveredTickIndex] = useState<number | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const timelineTrackRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
 
   const years = getYears();
   const sortedMeditations = [...meditations].sort(
-    (a, b) => b.date.getTime() - a.date.getTime()
+    (a, b) => b.dateString.localeCompare(a.dateString)
   );
 
   const scrollToIndex = useCallback((index: number) => {
@@ -26,7 +29,7 @@ export function MeditationTimeline() {
   const handlePrev = () => scrollToIndex(activeIndex - 1);
   const handleNext = () => scrollToIndex(activeIndex + 1);
 
-  // Mouse drag handlers
+  // Cards drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!cardsContainerRef.current) return;
     setIsDragging(true);
@@ -54,7 +57,7 @@ export function MeditationTimeline() {
     setIsDragging(false);
   };
 
-  // Touch handlers
+  // Touch handlers for cards
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!cardsContainerRef.current) return;
     setIsDragging(true);
@@ -77,6 +80,65 @@ export function MeditationTimeline() {
     setIsDragging(false);
   };
 
+  // Timeline drag handlers - drag the indicator dot
+  const handleTimelineMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsTimelineDragging(true);
+    updateIndexFromPosition(e.clientX);
+  };
+
+  const handleTimelineMouseMove = useCallback((e: MouseEvent) => {
+    if (!isTimelineDragging) return;
+    updateIndexFromPosition(e.clientX);
+  }, [isTimelineDragging]);
+
+  const handleTimelineMouseUp = useCallback(() => {
+    setIsTimelineDragging(false);
+  }, []);
+
+  const updateIndexFromPosition = (clientX: number) => {
+    if (!timelineTrackRef.current) return;
+    const rect = timelineTrackRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, x / rect.width));
+    const newIndex = Math.round(percentage * (sortedMeditations.length - 1));
+    setActiveIndex(newIndex);
+  };
+
+  // Timeline touch handlers
+  const handleTimelineTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setIsTimelineDragging(true);
+    updateIndexFromPosition(e.touches[0].clientX);
+  };
+
+  const handleTimelineTouchMove = useCallback((e: TouchEvent) => {
+    if (!isTimelineDragging) return;
+    e.preventDefault();
+    updateIndexFromPosition(e.touches[0].clientX);
+  }, [isTimelineDragging]);
+
+  const handleTimelineTouchEnd = useCallback(() => {
+    setIsTimelineDragging(false);
+  }, []);
+
+  // Add global mouse/touch listeners for timeline dragging
+  useEffect(() => {
+    if (isTimelineDragging) {
+      window.addEventListener("mousemove", handleTimelineMouseMove);
+      window.addEventListener("mouseup", handleTimelineMouseUp);
+      window.addEventListener("touchmove", handleTimelineTouchMove, { passive: false });
+      window.addEventListener("touchend", handleTimelineTouchEnd);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleTimelineMouseMove);
+      window.removeEventListener("mouseup", handleTimelineMouseUp);
+      window.removeEventListener("touchmove", handleTimelineTouchMove);
+      window.removeEventListener("touchend", handleTimelineTouchEnd);
+    };
+  }, [isTimelineDragging, handleTimelineMouseMove, handleTimelineMouseUp, handleTimelineTouchMove, handleTimelineTouchEnd]);
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -93,7 +155,7 @@ export function MeditationTimeline() {
     let currentYear = -1;
 
     sortedMeditations.forEach((meditation, index) => {
-      const year = meditation.date.getFullYear();
+      const year = parseInt(meditation.dateString.split('-')[0]);
       if (year !== currentYear) {
         positions.push({
           year,
@@ -107,8 +169,14 @@ export function MeditationTimeline() {
     return positions;
   };
 
+  const formatDateShort = (dateString: string) => {
+    const [year, month, day] = dateString.split('-');
+    const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    const monthName = months[parseInt(month) - 1];
+    return `${parseInt(day)} ${monthName} ${year}`;
+  };
+
   const yearPositions = getYearPositions();
-  const currentMeditation = sortedMeditations[activeIndex];
   const progressPercentage = (activeIndex / (sortedMeditations.length - 1)) * 100;
 
   return (
@@ -219,55 +287,101 @@ export function MeditationTimeline() {
       {/* Timeline */}
       <div ref={timelineRef} className="relative px-8 md:px-16 pb-16">
         {/* Timeline Track */}
-        <div className="relative h-32">
-          {/* Tick marks */}
-          <div className="absolute top-0 left-0 right-0 h-16 flex justify-between px-4">
-            {Array.from({ length: sortedMeditations.length }).map((_, i) => {
+        <div className="relative h-40">
+          {/* Tick marks with hover effect */}
+          <div className="absolute top-0 left-0 right-0 h-20 flex justify-between items-end px-0">
+            {sortedMeditations.map((meditation, i) => {
               const isYearStart = yearPositions.some((yp) => yp.index === i);
+              const isActive = i === activeIndex;
+              const isHovered = i === hoveredTickIndex;
+              
               return (
                 <div
                   key={i}
-                  className={`w-px transition-all duration-300 ${
-                    i === activeIndex
-                      ? "bg-primary h-10"
-                      : isYearStart
-                      ? "bg-foreground/60 h-8"
-                      : "bg-foreground/30 h-5"
-                  }`}
-                />
+                  className="relative flex flex-col items-center"
+                  style={{ width: `${100 / sortedMeditations.length}%` }}
+                >
+                  {/* Tooltip on hover */}
+                  {isHovered && (
+                    <div className="absolute bottom-full mb-2 px-3 py-1.5 bg-card text-card-foreground text-xs rounded-md shadow-lg whitespace-nowrap z-30 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                      <div className="font-medium">{meditation.title}</div>
+                      <div className="text-card-foreground/70">{formatDateShort(meditation.dateString)}</div>
+                      <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-card" />
+                    </div>
+                  )}
+                  
+                  {/* Tick mark */}
+                  <button
+                    className={`w-px transition-all duration-300 cursor-pointer ${
+                      isActive
+                        ? "bg-primary"
+                        : isHovered
+                        ? "bg-primary/80"
+                        : isYearStart
+                        ? "bg-foreground/60"
+                        : "bg-foreground/30"
+                    }`}
+                    style={{
+                      height: isActive 
+                        ? "40px" 
+                        : isHovered 
+                        ? "32px" 
+                        : isYearStart 
+                        ? "28px" 
+                        : "18px",
+                      transform: isHovered && !isActive ? "translateY(-4px)" : "translateY(0)",
+                    }}
+                    onClick={() => setActiveIndex(i)}
+                    onMouseEnter={() => setHoveredTickIndex(i)}
+                    onMouseLeave={() => setHoveredTickIndex(null)}
+                    aria-label={`Ir a ${meditation.title}`}
+                  />
+                </div>
               );
             })}
           </div>
 
-          {/* Main timeline line */}
-          <div className="absolute top-16 left-4 right-4 h-0.5 bg-foreground/20">
-            {/* Progress indicator */}
+          {/* Main timeline line - draggable area */}
+          <div 
+            ref={timelineTrackRef}
+            className={`absolute top-20 left-0 right-0 h-3 cursor-pointer ${isTimelineDragging ? "cursor-grabbing" : "cursor-grab"}`}
+            onMouseDown={handleTimelineMouseDown}
+            onTouchStart={handleTimelineTouchStart}
+          >
+            {/* Track background */}
+            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-0.5 bg-foreground/20" />
+            
+            {/* Progress fill */}
             <div
-              className="absolute top-0 left-0 h-full bg-primary transition-all duration-500"
+              className="absolute top-1/2 -translate-y-1/2 left-0 h-0.5 bg-primary transition-all duration-150"
               style={{ width: `${progressPercentage}%` }}
             />
-            {/* Active dot */}
+            
+            {/* Draggable indicator dot */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-primary border-4 border-background shadow-lg transition-all duration-500"
-              style={{ left: `${progressPercentage}%`, marginLeft: "-8px" }}
-            />
+              className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary border-4 border-background shadow-lg transition-transform duration-150 ${
+                isTimelineDragging ? "scale-125" : "hover:scale-110"
+              }`}
+              style={{ 
+                left: `${progressPercentage}%`, 
+                marginLeft: "-10px",
+              }}
+            >
+              {/* Pulse effect when dragging */}
+              {isTimelineDragging && (
+                <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-50" />
+              )}
+            </div>
           </div>
 
           {/* Year labels */}
-          <div className="absolute top-20 left-4 right-4">
-            {yearPositions.map(({ year, position }) => (
+          <div className="absolute top-28 left-0 right-0">
+            {yearPositions.map(({ year, position, index }) => (
               <button
                 key={year}
-                className="absolute transform -translate-x-1/2 text-sm md:text-base font-medium text-foreground/70 hover:text-primary transition-colors"
+                className="absolute transform -translate-x-1/2 text-sm md:text-base font-semibold text-foreground/70 hover:text-primary transition-colors"
                 style={{ left: `${position}%` }}
-                onClick={() => {
-                  const yearMeditationIndex = sortedMeditations.findIndex(
-                    (m) => m.date.getFullYear() === year
-                  );
-                  if (yearMeditationIndex !== -1) {
-                    setActiveIndex(yearMeditationIndex);
-                  }
-                }}
+                onClick={() => setActiveIndex(index)}
               >
                 {year}
               </button>
