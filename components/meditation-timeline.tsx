@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { meditations as fallbackMeditations, type Meditation } from "@/lib/meditations-data";
 import { MeditationCard } from "./meditation-card";
 import { MeditationReader } from "./meditation-reader";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // API meditation type
 interface APIMeditation {
@@ -34,6 +34,7 @@ export function MeditationTimeline() {
   const [readerOpen, setReaderOpen] = useState(false);
   const [apiMeditations, setApiMeditations] = useState<APIMeditation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [contentVisible, setContentVisible] = useState(false);
   const [serendipiaAnimating, setSerendipiaAnimating] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineTrackRef = useRef<HTMLDivElement>(null);
@@ -153,6 +154,13 @@ export function MeditationTimeline() {
     
     fetchMeditations();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      const timer = setTimeout(() => setContentVisible(true), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
 
   // Group meditations by base slug (Spanish primary, other languages as translations)
   const groupedMeditations = useMemo((): MeditationGroup[] => {
@@ -387,20 +395,104 @@ export function MeditationTimeline() {
 
   const activeMeditation: Meditation = sortedMeditations[activeIndex];
 
-  // Show loading state
-  if (isLoading && sortedMeditations.length === 0) {
+  // Show loading state while fetching real data
+  if (isLoading) {
     return (
       <div className="relative w-full min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-muted-foreground">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm font-light tracking-wide">Cargando meditaciones...</p>
+        <style>{`
+          @keyframes mandala-spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+          }
+          @keyframes mandala-spin-reverse {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(-360deg); }
+          }
+          @keyframes breathe {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50%       { opacity: 1;   transform: scale(1.08); }
+          }
+          @keyframes fade-up {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+        <div className="flex flex-col items-center gap-8">
+          {/* Mandala animada */}
+          <div className="relative w-28 h-28" style={{ animation: "breathe 3.5s ease-in-out infinite" }}>
+            {/* Anillo exterior — gira lento */}
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 100 100"
+              fill="none"
+              style={{ animation: "mandala-spin 12s linear infinite", color: "oklch(0.75 0.12 85 / 0.4)" }}
+            >
+              <circle cx="50" cy="50" r="46" stroke="currentColor" strokeWidth="0.8" strokeDasharray="6 4" />
+              {[0,45,90,135,180,225,270,315].map(deg => (
+                <line
+                  key={deg}
+                  x1="50" y1="4"
+                  x2="50" y2="14"
+                  stroke="currentColor" strokeWidth="1"
+                  transform={`rotate(${deg} 50 50)`}
+                />
+              ))}
+            </svg>
+            {/* Anillo medio — gira al revés */}
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 100 100"
+              fill="none"
+              style={{ animation: "mandala-spin-reverse 8s linear infinite", color: "oklch(0.75 0.12 85 / 0.6)" }}
+            >
+              <circle cx="50" cy="50" r="32" stroke="currentColor" strokeWidth="0.8" />
+              {[0,60,120,180,240,300].map(deg => (
+                <circle
+                  key={deg}
+                  cx="50" cy="18" r="3"
+                  stroke="currentColor" strokeWidth="0.6" fill="none"
+                  transform={`rotate(${deg} 50 50)`}
+                />
+              ))}
+            </svg>
+            {/* Centro estático */}
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 100 100"
+              fill="none"
+              style={{ color: "oklch(0.75 0.12 85)" }}
+            >
+              <path d="M50 30L54 50L50 70L46 50L50 30Z" stroke="currentColor" strokeWidth="1" fill="none" />
+              <path d="M30 50L50 46L70 50L50 54L30 50Z" stroke="currentColor" strokeWidth="1" fill="none" />
+              <circle cx="50" cy="50" r="4" stroke="currentColor" strokeWidth="1" fill="none" />
+              <circle cx="50" cy="50" r="1.5" fill="currentColor" />
+            </svg>
+          </div>
+
+          <div style={{ animation: "fade-up 1s ease both 0.3s", opacity: 0 }}>
+            <p
+              className="font-serif text-lg tracking-[0.3em] uppercase"
+              style={{ color: "oklch(0.55 0.06 80)" }}
+            >
+              Meditaciones
+            </p>
+            <p
+              className="text-xs tracking-widest text-center mt-1"
+              style={{ color: "oklch(0.65 0.04 80)" }}
+            >
+              Cargando...
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full min-h-screen bg-background overflow-hidden">
+    <div
+      className="relative w-full min-h-screen bg-background overflow-hidden"
+      style={{ opacity: contentVisible ? 1 : 0, transition: "opacity 0.7s ease" }}
+    >
       {/* Reader overlay */}
       {readerOpen && activeMeditation && (
         <MeditationReader
