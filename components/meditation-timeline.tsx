@@ -35,19 +35,45 @@ export function MeditationTimeline() {
   useEffect(() => {
     const fetchMeditations = async () => {
       try {
-        // Fetch directly from WordPress API in the browser
-        const res = await fetch(
-          "https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&_embed=wp:featuredmedia",
-          { mode: "cors" }
-        );
+        // Fetch all posts from WordPress API with pagination
+        let allPosts: any[] = [];
+        let page = 1;
+        let hasMore = true;
+        let totalPages = 1;
         
-        if (!res.ok) {
-          throw new Error(`API error: ${res.status}`);
+        while (hasMore && page <= totalPages) {
+          console.log(`[v0] Fetching meditations page ${page}...`);
+          
+          const res = await fetch(
+            `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia`,
+            { mode: "cors" }
+          );
+          
+          if (!res.ok) {
+            throw new Error(`API error: ${res.status}`);
+          }
+          
+          const posts = await res.json();
+          
+          if (!posts || posts.length === 0) {
+            hasMore = false;
+            break;
+          }
+          
+          allPosts = [...allPosts, ...posts];
+          
+          // Check if there are more pages
+          const totalPagesHeader = res.headers.get("X-WP-TotalPages");
+          if (totalPagesHeader) {
+            totalPages = parseInt(totalPagesHeader);
+          }
+          
+          page++;
         }
         
-        const posts = await res.json();
+        console.log(`[v0] Total pages fetched: ${page - 1}, Total posts: ${allPosts.length}`);
         
-        const meditations: APIMeditation[] = posts.map((post: {
+        const meditations: APIMeditation[] = allPosts.map((post: {
           id: number;
           date: string;
           slug: string;
@@ -85,6 +111,7 @@ export function MeditationTimeline() {
           };
         });
         
+        console.log(`[v0] Processed ${meditations.length} meditations with images`);
         setApiMeditations(meditations);
       } catch (err) {
         console.error("[v0] Failed to fetch from WordPress API:", err);
@@ -93,9 +120,11 @@ export function MeditationTimeline() {
           const res = await fetch("/api/meditations");
           const data = await res.json();
           if (data.meditations?.length) {
+            console.log(`[v0] Fallback: Fetched ${data.meditations.length} meditations from local API`);
             setApiMeditations(data.meditations);
           }
         } catch {
+          console.warn("[v0] All fetch attempts failed, using static data");
           // Will use fallback static data
         }
       } finally {
