@@ -1,10 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { meditations as fallbackMeditations, type Meditation } from "@/lib/meditations-data";
-import { MeditationCard } from "./meditation-card";
+import { motion } from "framer-motion";
+import { meditations as fallbackMeditations, type Meditation, formatDateDisplay } from "@/lib/meditations-data";
 import { MeditationReader } from "./meditation-reader";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { BookOpen, Loader2 } from "lucide-react";
+
+const FRAME_OFFSET = -30;
+const FRAMES_VISIBLE_LENGTH = 3;
+const BUFFER_SIZE = 5;
+
+const clamp = (value: number, [min, max]: [number, number]): number =>
+  Math.max(min, Math.min(max, value));
 
 // API meditation type
 interface APIMeditation {
@@ -26,10 +33,7 @@ interface MeditationGroup {
 
 export function MeditationTimeline() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
   const [isTimelineDragging, setIsTimelineDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
   const [hoveredTickIndex, setHoveredTickIndex] = useState<number | null>(null);
   const [readerOpen, setReaderOpen] = useState(false);
   const [apiMeditations, setApiMeditations] = useState<APIMeditation[]>([]);
@@ -38,6 +42,7 @@ export function MeditationTimeline() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineTrackRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
+  const lastUpdateTime = useRef(Date.now());
 
   // Fetch meditations directly from WordPress REST API (client-side to bypass server restrictions)
   useEffect(() => {
@@ -213,48 +218,15 @@ export function MeditationTimeline() {
   const handlePrev = useCallback(() => scrollToIndex(activeIndex - 1), [activeIndex, scrollToIndex]);
   const handleNext = useCallback(() => scrollToIndex(activeIndex + 1), [activeIndex, scrollToIndex]);
 
-  // Cards drag handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!cardsContainerRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - cardsContainerRef.current.offsetLeft);
-    setScrollLeft(activeIndex);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    if (!cardsContainerRef.current) return;
-    const x = e.pageX - cardsContainerRef.current.offsetLeft;
-    const walk = (startX - x) / 150;
-    const newIndex = Math.round(scrollLeft + walk);
-    if (newIndex !== activeIndex && newIndex >= 0 && newIndex < sortedMeditations.length) {
-      setActiveIndex(newIndex);
+  const getVisibleCards = useCallback(() => {
+    const start = Math.max(0, activeIndex - BUFFER_SIZE);
+    const end = Math.min(sortedMeditations.length - 1, activeIndex + FRAMES_VISIBLE_LENGTH + BUFFER_SIZE);
+    const cards = [];
+    for (let i = start; i <= end; i++) {
+      cards.push({ index: i, meditation: sortedMeditations[i] });
     }
-  };
-
-  const handleMouseUp = () => setIsDragging(false);
-  const handleMouseLeave = () => setIsDragging(false);
-
-  // Touch handlers for cards
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!cardsContainerRef.current) return;
-    setIsDragging(true);
-    setStartX(e.touches[0].pageX - cardsContainerRef.current.offsetLeft);
-    setScrollLeft(activeIndex);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !cardsContainerRef.current) return;
-    const x = e.touches[0].pageX - cardsContainerRef.current.offsetLeft;
-    const walk = (startX - x) / 150;
-    const newIndex = Math.round(scrollLeft + walk);
-    if (newIndex !== activeIndex && newIndex >= 0 && newIndex < sortedMeditations.length) {
-      setActiveIndex(newIndex);
-    }
-  };
-
-  const handleTouchEnd = () => setIsDragging(false);
+    return cards;
+  }, [activeIndex, sortedMeditations]);
 
   // Timeline drag handlers
   const updateIndexFromPosition = useCallback((clientX: number) => {
@@ -327,22 +299,20 @@ export function MeditationTimeline() {
       if (readerOpen) return;
       e.preventDefault();
       scrollAccumulator.current += e.deltaY + e.deltaX;
-      // Throttle: only advance once per ~120px of scroll
-      if (Math.abs(scrollAccumulator.current) > 120) {
-        if (scrollAccumulator.current > 0) {
-          handleNext();
-        } else {
-          handlePrev();
-        }
+      const now = Date.now();
+      const timeSinceLastUpdate = now - lastUpdateTime.current;
+      if (Math.abs(scrollAccumulator.current) >= 60 && timeSinceLastUpdate >= 75) {
+        const delta = scrollAccumulator.current > 0 ? 1 : -1;
+        setActiveIndex((prev) => Math.max(0, Math.min(sortedMeditations.length - 1, prev + delta)));
         scrollAccumulator.current = 0;
+        lastUpdateTime.current = now;
       }
-      // Reset accumulator if user stops scrolling
       if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
       scrollTimeout.current = setTimeout(() => {
         scrollAccumulator.current = 0;
       }, 300);
     },
-    [readerOpen, handleNext, handlePrev]
+    [readerOpen, sortedMeditations.length]
   );
 
   useEffect(() => {
@@ -351,15 +321,6 @@ export function MeditationTimeline() {
     el.addEventListener("wheel", handleWheel, { passive: false });
     return () => el.removeEventListener("wheel", handleWheel);
   }, [handleWheel]);
-
-  // Stable per-card tilt values (seeded by id so consistent across renders)
-  const cardTilts = useMemo(() => {
-    return sortedMeditations.map((m) => {
-      // deterministic tilt from id: small values between -1.5 and 1.5 degrees
-      const seed = m.id % 31;
-      return ((seed - 15) / 15) * 1.5;
-    });
-  }, [sortedMeditations]);
 
   // Year positions
   const getYearPositions = () => {
@@ -437,98 +398,120 @@ export function MeditationTimeline() {
         </p>
       </header>
 
-      {/* Cards Carousel */}
-      <div className="relative flex-1 flex items-center justify-center py-8">
-        <button
-          onClick={handlePrev}
-          disabled={activeIndex === 0}
-          className="absolute left-4 md:left-8 z-20 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
-          aria-label="Anterior meditación"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
+      {/* Cards Carousel — TimeMachine vertical stack */}
+      <div
+        ref={cardsContainerRef}
+        className="relative w-full flex items-center justify-center overflow-hidden select-none"
+        style={{ height: "clamp(260px, calc(53.4vw + 100px), 570px)" }}
+      >
+        {getVisibleCards().map((card) => {
+          const offsetIndex = card.index - activeIndex;
+          const blur = activeIndex > card.index ? 2 : 0;
+          const opacity = activeIndex > card.index ? 0 : 1;
+          const scale = clamp(1 - offsetIndex * 0.08, [0.08, 2]);
+          const y = clamp(offsetIndex * FRAME_OFFSET, [FRAME_OFFSET * FRAMES_VISIBLE_LENGTH, Number.POSITIVE_INFINITY]);
+          const isActive = card.index === activeIndex;
 
-        <button
-          onClick={handleNext}
-          disabled={activeIndex === sortedMeditations.length - 1}
-          className="absolute right-4 md:right-8 z-20 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
-          aria-label="Siguiente meditación"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-
-        <div
-          ref={cardsContainerRef}
-          className="relative w-full flex items-center justify-center select-none"
-          style={{
-            cursor: isDragging ? "grabbing" : "grab",
-            minHeight: "260px",
-            paddingTop: "40px",
-            paddingBottom: "40px",
-          }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div
-            className="relative w-full max-w-5xl flex items-center justify-center"
-            style={{ perspective: "1200px", transformStyle: "preserve-3d", height: "340px" }}
-          >
-            {sortedMeditations.map((meditation, index) => {
-              const offset = index - activeIndex;
-              const absOffset = Math.abs(offset);
-              if (absOffset > 4) return null;
-
-              const translateX = offset * 90;
-              const translateZ = -absOffset * 80;
-              const rotateY = offset * -10;
-              const scale = 1 - absOffset * 0.08;
-              const opacity = 1 - absOffset * 0.22;
-              const zIndex = 10 - absOffset;
-              const isActive = index === activeIndex;
-
-              return (
-                <div
-                  key={meditation.id}
-                  className="absolute"
-                  style={{
-                    transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
-                    opacity: Math.max(0, opacity),
-                    zIndex,
-                    cursor: isActive ? "pointer" : "default",
-                    transition: "transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.45s ease",
-                    willChange: "transform, opacity",
-                  }}
-                  onClick={() => {
-                    if (isActive && !isDragging) {
-                      setReaderOpen(true);
-                    } else {
-                      setActiveIndex(index);
-                    }
-                  }}
-                >
-                  <MeditationCard
-                    meditation={meditation}
-                    isActive={isActive}
-                    tilt={cardTilts[index] ?? 0}
-                    onTranslationClick={(slug) => {
-                      // Open the translation in a new tab
-                      window.open(`https://shaktianandama.com/${slug}/`, "_blank");
-                    }}
-                  />
+          return (
+            <motion.div
+              key={card.index}
+              className="absolute w-[85%] max-w-[800px] aspect-[16/9] rounded-md overflow-hidden shadow-2xl"
+              style={{
+                willChange: "transform, opacity, filter",
+                filter: `blur(${blur}px)`,
+                opacity,
+                transitionProperty: "opacity, filter",
+                transitionDuration: "200ms",
+                transitionTimingFunction: "ease-in-out",
+                zIndex: 1000 - card.index,
+                cursor: isActive ? "pointer" : "default",
+              }}
+              initial={false}
+              animate={{
+                y,
+                scale,
+                transition: {
+                  type: "spring",
+                  stiffness: 250,
+                  damping: 20,
+                  mass: 0.5,
+                },
+              }}
+              onClick={() => {
+                if (isActive) {
+                  setReaderOpen(true);
+                } else {
+                  scrollToIndex(card.index);
+                }
+              }}
+            >
+              {/* Image */}
+              {card.meditation.imageUrl ? (
+                <img
+                  src={card.meditation.imageUrl}
+                  alt={card.meditation.title}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0" style={{ backgroundColor: "oklch(0.38 0.05 240)" }}>
+                  {[0, 90, 180, 270].map((rot) => (
+                    <svg key={rot} className="absolute w-20 h-20 opacity-15"
+                      style={{ top: rot < 180 ? 0 : "auto", bottom: rot >= 180 ? 0 : "auto", left: rot === 0 || rot === 270 ? 0 : "auto", right: rot === 90 || rot === 180 ? 0 : "auto", transform: `rotate(${rot}deg)` }}
+                      viewBox="0 0 100 100" fill="none">
+                      <path d="M0 100 Q0 0 100 0" stroke="oklch(0.75 0.12 85)" strokeWidth="0.5" />
+                    </svg>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              )}
+
+              {/* Gradient overlay */}
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, oklch(0.12 0.02 240 / 0.92) 0%, oklch(0.12 0.02 240 / 0.4) 40%, transparent 65%)" }} />
+
+              {/* Title & date */}
+              <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
+                <h2 className="font-serif font-semibold uppercase tracking-wider text-balance leading-tight mb-1"
+                  style={{ fontSize: "clamp(0.7rem, 1.8vw, 1rem)", color: "oklch(0.92 0.03 85)" }}>
+                  {card.meditation.title}
+                </h2>
+                <p className="text-xs font-light tracking-widest" style={{ color: "oklch(0.75 0.12 85)" }}>
+                  {formatDateDisplay(card.meditation.dateString)}
+                </p>
+              </div>
+
+              {/* Read overlay on active card */}
+              {isActive && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300"
+                  style={{ backgroundColor: "oklch(0.08 0.02 240 / 0.55)" }}>
+                  <div className="flex flex-col items-center gap-2 px-5 py-3"
+                    style={{ backgroundColor: "oklch(0.10 0.02 240 / 0.75)", borderRadius: "2px", border: "1px solid oklch(0.75 0.12 85 / 0.3)" }}>
+                    <BookOpen className="w-5 h-5" style={{ color: "oklch(0.75 0.12 85)" }} />
+                    <span className="text-xs font-medium tracking-widest uppercase" style={{ color: "oklch(0.88 0.05 85)" }}>
+                      Leer meditación
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Translation tabs on active card */}
+              {isActive && (card.meditation as Meditation & { translations?: { slug: string; language: string }[] }).translations?.length ? (
+                <div className="absolute top-2 right-2 flex gap-1 z-10">
+                  {((card.meditation as Meditation & { translations?: { slug: string; language: string }[] }).translations ?? []).map((t) => (
+                    <button key={t.slug}
+                      onClick={(e) => { e.stopPropagation(); window.open(`https://shaktianandama.com/${t.slug}/`, "_blank"); }}
+                      className="px-2.5 py-1 text-xs font-medium tracking-wide uppercase transition-colors duration-150"
+                      style={{ backgroundColor: "oklch(0.22 0.03 240 / 0.95)", color: "oklch(0.75 0.10 85)", borderRadius: "2px", border: "1px solid oklch(0.75 0.12 85 / 0.25)" }}>
+                      {t.language.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </motion.div>
+          );
+        })}
       </div>
 
-      {/* Click hint for active card */}
-      <div className="text-center -mt-4 mb-6">
+      {/* Click hint */}
+      <div className="text-center mt-3 mb-6">
         <p className="text-xs text-muted-foreground tracking-widest uppercase font-light">
           Clic en la tarjeta para leer
         </p>
