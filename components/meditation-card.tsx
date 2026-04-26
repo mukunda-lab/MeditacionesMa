@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Logo } from "./logo";
 import type { Meditation } from "@/lib/meditations-data";
 import { formatDateDisplay } from "@/lib/meditations-data";
 import { BookOpen } from "lucide-react";
@@ -77,12 +78,7 @@ export function MeditationCard({ meditation, isActive, tilt = 0, onTranslationCl
         </svg>
       ))}
 
-      <svg className="w-9 h-9 mb-3 opacity-70" viewBox="0 0 48 48" fill="none" style={{ color: "oklch(0.75 0.12 85)" }}>
-        <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="1" />
-        <path d="M24 12L27 24L24 36L21 24L24 12Z" stroke="currentColor" strokeWidth="0.75" fill="none" />
-        <path d="M12 24L24 21L36 24L24 27L12 24Z" stroke="currentColor" strokeWidth="0.75" fill="none" />
-        <circle cx="24" cy="24" r="2" fill="currentColor" />
-      </svg>
+      <Logo className="w-9 h-9 mb-3 opacity-70" />
 
       <h2
         className="font-serif font-semibold uppercase tracking-wider text-balance leading-tight mb-2"

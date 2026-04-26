@@ -5,6 +5,7 @@ import { meditations as fallbackMeditations, type Meditation } from "@/lib/medit
 import { MeditationCard } from "./meditation-card";
 import { MeditationReader } from "./meditation-reader";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Logo } from "./logo";
 
 // API meditation type
 interface APIMeditation {
@@ -494,18 +495,10 @@ export function MeditationTimeline() {
                 />
               ))}
             </svg>
-            {/* Centro estático */}
-            <svg
-              className="absolute inset-0 w-full h-full"
-              viewBox="0 0 100 100"
-              fill="none"
-              style={{ color: "oklch(0.75 0.12 85)" }}
-            >
-              <path d="M50 30L54 50L50 70L46 50L50 30Z" stroke="currentColor" strokeWidth="1" fill="none" />
-              <path d="M30 50L50 46L70 50L50 54L30 50Z" stroke="currentColor" strokeWidth="1" fill="none" />
-              <circle cx="50" cy="50" r="4" stroke="currentColor" strokeWidth="1" fill="none" />
-              <circle cx="50" cy="50" r="1.5" fill="currentColor" />
-            </svg>
+            {/* Logo central */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Logo className="w-12 h-12" />
+            </div>
           </div>
 
           <div style={{ animation: "fade-up 1s ease both 0.3s", opacity: 0 }}>
@@ -546,13 +539,8 @@ export function MeditationTimeline() {
 
       {/* Header */}
       <header className="text-center pt-12 pb-8 px-4">
-        <div className="mb-4">
-          <svg className="w-12 h-12 mx-auto text-primary" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1.5" />
-            <circle cx="24" cy="24" r="14" stroke="currentColor" strokeWidth="1" />
-            <path d="M24 10L28 24L24 38L20 24L24 10Z" stroke="currentColor" strokeWidth="1" fill="none" />
-            <path d="M10 24L24 20L38 24L24 28L10 24Z" stroke="currentColor" strokeWidth="1" fill="none" />
-          </svg>
+        <div className="mb-4 flex justify-center">
+          <Logo className="w-12 h-12" />
         </div>
         <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-foreground tracking-wide mb-3">
           MEDITACIONES
