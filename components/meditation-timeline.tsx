@@ -15,6 +15,13 @@ interface APIMeditation {
   excerpt: string;
   imageUrl: string | null;
   link: string;
+  language?: "es" | "it" | "en";
+}
+
+// Meditation with translations
+interface MeditationGroup {
+  primary: APIMeditation;
+  translations: APIMeditation[];
 }
 
 export function MeditationTimeline() {
@@ -27,6 +34,7 @@ export function MeditationTimeline() {
   const [readerOpen, setReaderOpen] = useState(false);
   const [apiMeditations, setApiMeditations] = useState<APIMeditation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [serendipiaAnimating, setSerendipiaAnimating] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineTrackRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
@@ -35,15 +43,13 @@ export function MeditationTimeline() {
   useEffect(() => {
     const fetchMeditations = async () => {
       try {
-        // Fetch all posts from WordPress API with pagination
+        // Fetch all posts with pagination
         let allPosts: any[] = [];
         let page = 1;
         let hasMore = true;
         let totalPages = 1;
         
         while (hasMore && page <= totalPages) {
-          console.log(`[v0] Fetching meditations page ${page}...`);
-          
           const res = await fetch(
             `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia`,
             { mode: "cors" }
@@ -71,9 +77,19 @@ export function MeditationTimeline() {
           page++;
         }
         
-        console.log(`[v0] Total pages fetched: ${page - 1}, Total posts: ${allPosts.length}`);
+        // Filter to keep only meditation posts (exclude pages, categories, etc.)
+        // Meditation posts typically have a featured image and meaningful content
+        const meditationPosts = allPosts.filter((post: any) => {
+          // Must have featured image
+          const hasImage = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
+          // Exclude common non-meditation slugs
+          const excludedSlugs = ["contacto", "sobre", "about", "privacy", "legal", "terms", "cookie", "aviso-legal"];
+          const isExcluded = excludedSlugs.some(s => post.slug.includes(s));
+          return hasImage && !isExcluded;
+        });
         
-        const meditations: APIMeditation[] = allPosts.map((post: {
+        // Process posts and detect language
+        const meditations: APIMeditation[] = meditationPosts.map((post: {
           id: number;
           date: string;
           slug: string;
@@ -100,18 +116,29 @@ export function MeditationTimeline() {
             imageUrl = sizes?.full?.source_url || sizes?.large?.source_url || media.source_url || null;
           }
           
+          const title = post.title.rendered.replace(/<[^>]+>/g, "").replace(/&[^;]+;/g, " ").trim();
+          const slug = post.slug;
+          
+          // Detect language from slug suffix
+          let language: "es" | "it" | "en" = "es";
+          if (slug.endsWith("-it") || slug.endsWith("-italiano")) {
+            language = "it";
+          } else if (slug.endsWith("-en") || slug.endsWith("-english")) {
+            language = "en";
+          }
+          
           return {
             id: post.id,
-            title: post.title.rendered.replace(/<[^>]+>/g, "").replace(/&[^;]+;/g, " ").trim(),
-            slug: post.slug,
+            title,
+            slug,
             dateString: post.date.split("T")[0],
             excerpt: post.excerpt.rendered.replace(/<[^>]+>/g, "").replace(/&[^;]+;/g, " ").trim().slice(0, 300),
             imageUrl,
             link: post.link,
+            language,
           };
         });
         
-        console.log(`[v0] Processed ${meditations.length} meditations with images`);
         setApiMeditations(meditations);
       } catch (err) {
         console.error("[v0] Failed to fetch from WordPress API:", err);
@@ -120,11 +147,9 @@ export function MeditationTimeline() {
           const res = await fetch("/api/meditations");
           const data = await res.json();
           if (data.meditations?.length) {
-            console.log(`[v0] Fallback: Fetched ${data.meditations.length} meditations from local API`);
             setApiMeditations(data.meditations);
           }
         } catch {
-          console.warn("[v0] All fetch attempts failed, using static data");
           // Will use fallback static data
         }
       } finally {
@@ -135,23 +160,50 @@ export function MeditationTimeline() {
     fetchMeditations();
   }, []);
 
-  // Merge API data with fallback, prioritizing API data for images
-  const sortedMeditations: Meditation[] = useMemo(() => {
-    if (apiMeditations.length > 0) {
-      // Use API data directly - it has real images
-      return apiMeditations.map((m, i) => ({
-        id: m.id || i + 1,
-        title: m.title,
-        subtitle: "Meditación con Mataji Shaktiananda",
-        dateString: m.dateString,
-        excerpt: m.excerpt,
-        imageUrl: m.imageUrl || undefined,
-        slug: m.slug,
-      })).sort((a, b) => b.dateString.localeCompare(a.dateString));
+  // Group meditations by base slug (Spanish primary, other languages as translations)
+  const groupedMeditations = useMemo((): MeditationGroup[] => {
+    if (apiMeditations.length === 0) return [];
+    
+    // Separate Spanish (primary) and other languages
+    const spanish = apiMeditations.filter(m => m.language === "es");
+    const translations = apiMeditations.filter(m => m.language !== "es");
+    
+    // Create a map of base slug to translations
+    const translationMap = new Map<string, APIMeditation[]>();
+    translations.forEach(t => {
+      // Remove language suffix to get base slug
+      const baseSlug = t.slug.replace(/-it$|-italiano$|-en$|-english$/, "");
+      const existing = translationMap.get(baseSlug) || [];
+      existing.push(t);
+      translationMap.set(baseSlug, existing);
+    });
+    
+    // Group Spanish meditations with their translations
+    return spanish.map(primary => ({
+      primary,
+      translations: translationMap.get(primary.slug) || [],
+    }));
+  }, [apiMeditations]);
+
+  // Convert to Meditation type for display (only primary Spanish meditations)
+  const sortedMeditations: (Meditation & { translations?: APIMeditation[] })[] = useMemo(() => {
+    if (groupedMeditations.length > 0) {
+      return groupedMeditations
+        .map((g, i) => ({
+          id: g.primary.id || i + 1,
+          title: g.primary.title,
+          subtitle: "Meditación con Mataji Shaktiananda",
+          dateString: g.primary.dateString,
+          excerpt: g.primary.excerpt,
+          imageUrl: g.primary.imageUrl || undefined,
+          slug: g.primary.slug,
+          translations: g.translations,
+        }))
+        .sort((a, b) => b.dateString.localeCompare(a.dateString));
     }
     // Fallback to static data
     return [...fallbackMeditations].sort((a, b) => b.dateString.localeCompare(a.dateString));
-  }, [apiMeditations]);
+  }, [groupedMeditations]);
 
   const scrollToIndex = useCallback((index: number) => {
     const clampedIndex = Math.max(0, Math.min(index, sortedMeditations.length - 1));
@@ -463,6 +515,10 @@ export function MeditationTimeline() {
                     meditation={meditation}
                     isActive={isActive}
                     tilt={cardTilts[index] ?? 0}
+                    onTranslationClick={(slug) => {
+                      // Open the translation in a new tab
+                      window.open(`https://shaktianandama.com/${slug}/`, "_blank");
+                    }}
                   />
                 </div>
               );
@@ -485,29 +541,54 @@ export function MeditationTimeline() {
         <div className="flex justify-center mb-6">
           <button
             onClick={() => {
-              const randomIndex = Math.floor(Math.random() * sortedMeditations.length);
-              setActiveIndex(randomIndex);
-              setReaderOpen(true);
+              if (serendipiaAnimating) return;
+              const targetIndex = Math.floor(Math.random() * sortedMeditations.length);
+              setSerendipiaAnimating(true);
+              
+              // Animate through cards to reach target
+              const distance = Math.abs(targetIndex - activeIndex);
+              const direction = targetIndex > activeIndex ? 1 : -1;
+              const steps = Math.min(distance, 20); // Cap at 20 steps for long distances
+              const stepSize = distance / steps;
+              let currentStep = 0;
+              
+              const animateStep = () => {
+                currentStep++;
+                if (currentStep >= steps) {
+                  setActiveIndex(targetIndex);
+                  setSerendipiaAnimating(false);
+                  return;
+                }
+                const nextIndex = Math.round(activeIndex + (direction * stepSize * currentStep));
+                setActiveIndex(Math.max(0, Math.min(nextIndex, sortedMeditations.length - 1)));
+                setTimeout(animateStep, 80 - (currentStep * 2)); // Speed up gradually
+              };
+              
+              setTimeout(animateStep, 100);
             }}
+            disabled={serendipiaAnimating}
             className="group relative px-8 py-2.5 text-xs tracking-[0.25em] uppercase font-light transition-all duration-300"
             style={{
               border: "1px solid oklch(0.75 0.12 85 / 0.5)",
-              color: "oklch(0.55 0.08 85)",
+              color: serendipiaAnimating ? "oklch(0.75 0.12 85)" : "oklch(0.55 0.08 85)",
               borderRadius: "1px",
               letterSpacing: "0.2em",
+              opacity: serendipiaAnimating ? 0.7 : 1,
             }}
             onMouseEnter={e => {
+              if (serendipiaAnimating) return;
               (e.currentTarget as HTMLButtonElement).style.backgroundColor = "oklch(0.75 0.12 85 / 0.08)";
               (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.75 0.12 85 / 0.9)";
               (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.65 0.12 85)";
             }}
             onMouseLeave={e => {
+              if (serendipiaAnimating) return;
               (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
               (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.75 0.12 85 / 0.5)";
               (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.55 0.08 85)";
             }}
           >
-            Serendipia
+            {serendipiaAnimating ? "Buscando..." : "Serendipia"}
           </button>
         </div>
 
