@@ -693,30 +693,11 @@ export function MeditationTimeline() {
 
       {/* Cards Carousel */}
       <div className="relative flex-1 flex items-center justify-center py-8">
-        <button
-          onClick={handlePrev}
-          disabled={activeIndex === 0}
-          className="absolute left-4 md:left-8 z-20 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
-          aria-label="Anterior meditación"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-
-        <button
-          onClick={handleNext}
-          disabled={activeIndex === filteredMeditations.length - 1}
-          className="absolute right-4 md:right-8 z-20 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
-          aria-label="Siguiente meditación"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-
         <div
           ref={cardsContainerRef}
-          className="relative w-full flex items-center justify-center select-none"
+          className="relative w-full max-w-5xl select-none"
           style={{
             cursor: isDragging ? "grabbing" : "grab",
-            minHeight: "260px",
             paddingTop: "40px",
             paddingBottom: "40px",
           }}
@@ -728,8 +709,26 @@ export function MeditationTimeline() {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
+          <button
+            onClick={handlePrev}
+            disabled={activeIndex === 0}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
+            aria-label="Anterior meditación"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+
+          <button
+            onClick={handleNext}
+            disabled={activeIndex === filteredMeditations.length - 1}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
+            aria-label="Siguiente meditación"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+
           <div
-            className="relative w-full max-w-5xl flex items-center justify-center"
+            className="relative w-full flex items-center justify-center"
             style={{ perspective: "1200px", transformStyle: "preserve-3d", height: "340px" }}
           >
             {filteredMeditations.map((meditation, index) => {
