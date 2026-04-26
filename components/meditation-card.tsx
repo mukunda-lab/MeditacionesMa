@@ -188,26 +188,6 @@ export function MeditationCard({ meditation, isActive, tilt = 0, onTranslationCl
               setLoaded(true);
             }}
           />
-          {/* Bottom gradient */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to top, oklch(0.12 0.02 240 / 0.92) 0%, oklch(0.12 0.02 240 / 0.4) 40%, transparent 65%)",
-            }}
-          />
-          {/* Title at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
-            <h2
-              className="font-serif font-semibold uppercase tracking-wider text-balance leading-tight mb-1"
-              style={{ fontSize: "clamp(0.75rem, 2vw, 1rem)", color: "oklch(0.92 0.03 85)" }}
-            >
-              {meditation.title}
-            </h2>
-            <p className="text-xs font-light tracking-widest" style={{ color: "oklch(0.75 0.12 85)" }}>
-              {formatDateDisplay(meditation.dateString)}
-            </p>
-          </div>
         </>
       ) : (
         <FallbackCard />
@@ -234,6 +214,25 @@ export function MeditationCard({ meditation, isActive, tilt = 0, onTranslationCl
             </div>
           </div>
         )}
+      </div>
+
+      {/* Title and date — below image */}
+      <div className="w-full pt-2.5 pb-1 text-center px-1">
+        <h2
+          className="font-serif font-semibold uppercase tracking-wider text-balance leading-tight mb-1"
+          style={{
+            fontSize: isActive ? "clamp(0.85rem, 2vw, 1rem)" : "clamp(0.7rem, 1.8vw, 0.85rem)",
+            color: isActive ? "oklch(0.30 0.03 80)" : "oklch(0.45 0.03 80)",
+          }}
+        >
+          {meditation.title}
+        </h2>
+        <p
+          className="text-xs font-light tracking-widest"
+          style={{ color: isActive ? "oklch(0.50 0.06 80)" : "oklch(0.60 0.04 80 / 0.7)" }}
+        >
+          {formatDateDisplay(meditation.dateString)}
+        </p>
       </div>
 
       {/* Translation buttons — below active card */}
