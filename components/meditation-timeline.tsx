@@ -635,7 +635,7 @@ export function MeditationTimeline() {
 
       {/* Category filters */}
       <div className="flex justify-center px-4 mb-6">
-        <div className="flex flex-wrap justify-center gap-2">
+        <div className="flex flex-wrap justify-center gap-2 items-center">
           {CATEGORIES.map(cat => {
             const isActive = activeCategory === cat.id;
             return (
@@ -660,6 +660,21 @@ export function MeditationTimeline() {
               </button>
             );
           })}
+          {activeCategory && (
+            <button
+              onClick={() => setActiveCategory(null)}
+              className="flex items-center justify-center w-6 h-6 text-xs transition-opacity duration-200 hover:opacity-70"
+              style={{
+                border: "1px solid oklch(0.60 0.05 80 / 0.5)",
+                borderRadius: "50%",
+                color: "oklch(0.45 0.05 80)",
+                backgroundColor: "oklch(0.97 0.015 80)",
+              }}
+              title="Quitar filtro"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
