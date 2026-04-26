@@ -43,38 +43,32 @@ export function MeditationTimeline() {
   useEffect(() => {
     const fetchMeditations = async () => {
       try {
-        // Fetch all posts with pagination
-        let allPosts: any[] = [];
-        let page = 1;
-        let hasMore = true;
-        let totalPages = 1;
-        
-        while (hasMore && page <= totalPages) {
-          const res = await fetch(
-            `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia`,
-            { mode: "cors" }
+        // Fetch page 1 to discover total pages, then fetch all remaining pages in parallel
+        const firstRes = await fetch(
+          `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=1&_embed=wp:featuredmedia`,
+          { mode: "cors" }
+        );
+
+        if (!firstRes.ok) {
+          throw new Error(`API error: ${firstRes.status}`);
+        }
+
+        const firstPage = await firstRes.json();
+        const totalPages = parseInt(firstRes.headers.get("X-WP-TotalPages") || "1");
+
+        let allPosts: any[] = firstPage;
+
+        if (totalPages > 1) {
+          const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+          const remainingResults = await Promise.all(
+            remainingPages.map(page =>
+              fetch(
+                `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia`,
+                { mode: "cors" }
+              ).then(r => r.json())
+            )
           );
-          
-          if (!res.ok) {
-            throw new Error(`API error: ${res.status}`);
-          }
-          
-          const posts = await res.json();
-          
-          if (!posts || posts.length === 0) {
-            hasMore = false;
-            break;
-          }
-          
-          allPosts = [...allPosts, ...posts];
-          
-          // Check if there are more pages
-          const totalPagesHeader = res.headers.get("X-WP-TotalPages");
-          if (totalPagesHeader) {
-            totalPages = parseInt(totalPagesHeader);
-          }
-          
-          page++;
+          allPosts = [firstPage, ...remainingResults].flat();
         }
         
         // Filter to keep only meditation posts (exclude pages, categories, etc.)

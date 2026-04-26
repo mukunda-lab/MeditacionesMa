@@ -163,20 +163,13 @@ export function MeditationCard({ meditation, isActive, tilt = 0, onTranslationCl
       >
       {imageUrl && !imageError ? (
         <>
-          {/* Skeleton */}
-          {!loaded && (
-            <div
-              className="absolute inset-0 animate-pulse"
-              style={{ backgroundColor: "oklch(0.35 0.04 240)" }}
-            />
-          )}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             ref={imgRef}
             src={imageUrl}
             alt={meditation.title}
-            className="w-full h-full object-cover transition-opacity duration-500"
-            style={{ opacity: loaded ? 1 : 0, display: "block" }}
+            className="w-full h-full object-cover"
+            style={{ display: "block" }}
             onLoad={handleLoad}
             onError={() => {
               setImageError(true);
