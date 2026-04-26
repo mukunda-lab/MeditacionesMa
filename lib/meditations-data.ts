@@ -30,7 +30,6 @@ export const meditations: Meditation[] = [
     subtitle: "Meditación con Mataji Shaktiananda",
     dateString: "2026-04-16",
     excerpt: "Previo a todo, haz una breve y sentida invocación a tu Ser. Respira profunda y conscientemente.",
-    imageUrl: "https://shaktianandama.com/wp-content/uploads/2026/04/MeditacionShaktiananda-2026-04-16.jpg",
     slug: "la-verdad-te-ilumina"
   },
   {
