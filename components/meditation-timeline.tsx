@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { meditations as fallbackMeditations, type Meditation, formatDateDisplay } from "@/lib/meditations-data";
 import { MeditationReader } from "./meditation-reader";
 import { BookOpen, Loader2 } from "lucide-react";
+import { Logo } from "./logo";
 
 const FRAME_OFFSET = -30;
 const FRAMES_VISIBLE_LENGTH = 3;
@@ -20,6 +21,7 @@ interface APIMeditation {
   slug: string;
   dateString: string;
   excerpt: string;
+  content: string;
   imageUrl: string | null;
   link: string;
   language?: "es" | "it" | "en";
@@ -31,6 +33,17 @@ interface MeditationGroup {
   translations: APIMeditation[];
 }
 
+const CATEGORIES = [
+  { id: "silencio",   label: "Silencio",    keywords: ["silencio", "quietud", "calma", "serenidad", "tranquil", "reposo", "sosiego"] },
+  { id: "amor",       label: "Amor",        keywords: ["amor", "corazón", "compasión", "bondad", "ternura", "afecto", "amoroso"] },
+  { id: "respiracion",label: "Respiración", keywords: ["respiración", "respirar", "pranayama", "aliento", "inhala", "exhala", "soplo"] },
+  { id: "energia",    label: "Energía",     keywords: ["chakra", "energía", "kundalini", "prana", "vibración", "shakti"] },
+  { id: "presencia",  label: "Presencia",   keywords: ["presencia", "conciencia", "atención", "momento", "ahora", "despertar", "testigo"] },
+  { id: "mantra",     label: "Mantra",      keywords: ["mantra", "om", "aum", "sonido", "sagrado", "recitación", "invocación"] },
+  { id: "naturaleza", label: "Naturaleza",  keywords: ["naturaleza", "tierra", "agua", "fuego", "aire", "luz", "luna", "sol", "cielo"] },
+  { id: "devocion",   label: "Devoción",    keywords: ["devoción", "oración", "gratitud", "gracia", "divino", "guru", "fe", "bhakti"] },
+] as const;
+
 export function MeditationTimeline() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isTimelineDragging, setIsTimelineDragging] = useState(false);
@@ -38,7 +51,10 @@ export function MeditationTimeline() {
   const [readerOpen, setReaderOpen] = useState(false);
   const [apiMeditations, setApiMeditations] = useState<APIMeditation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [contentVisible, setContentVisible] = useState(false);
   const [serendipiaAnimating, setSerendipiaAnimating] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineTrackRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
@@ -48,47 +64,80 @@ export function MeditationTimeline() {
   useEffect(() => {
     const fetchMeditations = async () => {
       try {
-        // Fetch all posts with pagination
-        let allPosts: any[] = [];
-        let page = 1;
-        let hasMore = true;
-        let totalPages = 1;
-        
-        while (hasMore && page <= totalPages) {
-          const res = await fetch(
-            `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia`,
+        // Discover the meditation category ID and page-1 posts in parallel
+        const [catRes, firstRes] = await Promise.all([
+          fetch(
+            "https://shaktianandama.com/wp-json/wp/v2/categories?per_page=100",
+            { mode: "cors" }
+          ),
+          fetch(
+            "https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=1&_embed=wp:featuredmedia,wp:term",
+            { mode: "cors" }
+          ),
+        ]);
+
+        if (!firstRes.ok) throw new Error(`API error: ${firstRes.status}`);
+
+        // Find the meditation category ID (slug or name contains "meditaci")
+        let meditationCategoryId: number | null = null;
+        if (catRes.ok) {
+          const cats = await catRes.json();
+          const meditationCat = (cats as any[]).find(
+            (c) =>
+              c.slug?.includes("meditaci") ||
+              c.name?.toLowerCase().includes("meditaci")
+          );
+          if (meditationCat) meditationCategoryId = meditationCat.id;
+        }
+
+        const firstPage = await firstRes.json();
+        const totalPages = parseInt(firstRes.headers.get("X-WP-TotalPages") || "1");
+
+        // If we found a category, re-fetch filtered by it; otherwise use first page as-is
+        let allPosts: any[];
+        if (meditationCategoryId) {
+          const catParam = `&categories=${meditationCategoryId}`;
+          const filteredFirst = await fetch(
+            `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=1&_embed=wp:featuredmedia,wp:term${catParam}`,
             { mode: "cors" }
           );
-          
-          if (!res.ok) {
-            throw new Error(`API error: ${res.status}`);
+          if (!filteredFirst.ok) throw new Error(`API error: ${filteredFirst.status}`);
+          const filteredFirstPage = await filteredFirst.json();
+          const filteredTotalPages = parseInt(filteredFirst.headers.get("X-WP-TotalPages") || "1");
+
+          allPosts = filteredFirstPage;
+          if (filteredTotalPages > 1) {
+            const remaining = Array.from({ length: filteredTotalPages - 1 }, (_, i) => i + 2);
+            const rest = await Promise.all(
+              remaining.map(page =>
+                fetch(
+                  `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia,wp:term${catParam}`,
+                  { mode: "cors" }
+                ).then(r => r.json())
+              )
+            );
+            allPosts = [filteredFirstPage, ...rest].flat();
           }
-          
-          const posts = await res.json();
-          
-          if (!posts || posts.length === 0) {
-            hasMore = false;
-            break;
+        } else {
+          // Fallback: use unfiltered posts but keep only those with a featured image
+          allPosts = firstPage;
+          if (totalPages > 1) {
+            const remaining = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+            const rest = await Promise.all(
+              remaining.map(page =>
+                fetch(
+                  `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia,wp:term`,
+                  { mode: "cors" }
+                ).then(r => r.json())
+              )
+            );
+            allPosts = [firstPage, ...rest].flat();
           }
-          
-          allPosts = [...allPosts, ...posts];
-          
-          // Check if there are more pages
-          const totalPagesHeader = res.headers.get("X-WP-TotalPages");
-          if (totalPagesHeader) {
-            totalPages = parseInt(totalPagesHeader);
-          }
-          
-          page++;
         }
-        
-        // Filter to keep only meditation posts (exclude pages, categories, etc.)
-        // Meditation posts typically have a featured image and meaningful content
+
+        const excludedSlugs = ["contacto", "sobre", "about", "privacy", "legal", "terms", "cookie", "aviso-legal"];
         const meditationPosts = allPosts.filter((post: any) => {
-          // Must have featured image
           const hasImage = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
-          // Exclude common non-meditation slugs
-          const excludedSlugs = ["contacto", "sobre", "about", "privacy", "legal", "terms", "cookie", "aviso-legal"];
           const isExcluded = excludedSlugs.some(s => post.slug.includes(s));
           return hasImage && !isExcluded;
         });
@@ -100,6 +149,7 @@ export function MeditationTimeline() {
           slug: string;
           title: { rendered: string };
           excerpt: { rendered: string };
+          content?: { rendered: string };
           link: string;
           _embedded?: {
             "wp:featuredmedia"?: Array<{
@@ -138,6 +188,7 @@ export function MeditationTimeline() {
             slug,
             dateString: post.date.split("T")[0],
             excerpt: post.excerpt.rendered.replace(/<[^>]+>/g, "").replace(/&[^;]+;/g, " ").trim().slice(0, 300),
+            content: (post.content?.rendered || "").replace(/<[^>]+>/g, "").replace(/&[^;]+;/g, " ").trim().slice(0, 3000),
             imageUrl,
             link: post.link,
             language,
@@ -164,6 +215,13 @@ export function MeditationTimeline() {
     
     fetchMeditations();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      const timer = setTimeout(() => setContentVisible(true), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
 
   // Group meditations by base slug (Spanish primary, other languages as translations)
   const groupedMeditations = useMemo((): MeditationGroup[] => {
@@ -200,6 +258,7 @@ export function MeditationTimeline() {
           subtitle: "Meditación con Mataji Shaktiananda",
           dateString: g.primary.dateString,
           excerpt: g.primary.excerpt,
+          content: (g.primary as any).content ?? "",
           imageUrl: g.primary.imageUrl || undefined,
           slug: g.primary.slug,
           translations: g.translations,
@@ -210,23 +269,53 @@ export function MeditationTimeline() {
     return [...fallbackMeditations].sort((a, b) => b.dateString.localeCompare(a.dateString));
   }, [groupedMeditations]);
 
+  // Apply category + search filters
+  const filteredMeditations = useMemo(() => {
+    let result = sortedMeditations as (Meditation & { translations?: any[]; content?: string; excerpt?: string })[];
+
+    if (activeCategory) {
+      const cat = CATEGORIES.find(c => c.id === activeCategory);
+      if (cat) {
+        result = result.filter(m => {
+          const text = `${m.title} ${(m as any).excerpt ?? ""} ${(m as any).content ?? ""}`.toLowerCase();
+          return cat.keywords.some(kw => text.includes(kw));
+        });
+      }
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(m => {
+        const text = `${m.title} ${(m as any).excerpt ?? ""} ${(m as any).content ?? ""}`.toLowerCase();
+        return text.includes(q);
+      });
+    }
+
+    return result;
+  }, [sortedMeditations, activeCategory, searchQuery]);
+
+  // Reset carousel position when filter changes
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [activeCategory, searchQuery]);
+
   const scrollToIndex = useCallback((index: number) => {
-    const clampedIndex = Math.max(0, Math.min(index, sortedMeditations.length - 1));
+    const clampedIndex = Math.max(0, Math.min(index, filteredMeditations.length - 1));
     setActiveIndex(clampedIndex);
-  }, [sortedMeditations.length]);
+  }, [filteredMeditations.length]);
 
   const handlePrev = useCallback(() => scrollToIndex(activeIndex - 1), [activeIndex, scrollToIndex]);
   const handleNext = useCallback(() => scrollToIndex(activeIndex + 1), [activeIndex, scrollToIndex]);
 
   const getVisibleCards = useCallback(() => {
     const start = Math.max(0, activeIndex - BUFFER_SIZE);
-    const end = Math.min(sortedMeditations.length - 1, activeIndex + FRAMES_VISIBLE_LENGTH + BUFFER_SIZE);
+    const end = Math.min(filteredMeditations.length - 1, activeIndex + FRAMES_VISIBLE_LENGTH + BUFFER_SIZE);
     const cards = [];
     for (let i = start; i <= end; i++) {
-      cards.push({ index: i, meditation: sortedMeditations[i] });
+      cards.push({ index: i, meditation: filteredMeditations[i] });
     }
     return cards;
-  }, [activeIndex, sortedMeditations]);
+  }, [activeIndex, filteredMeditations]);
 
   // Timeline drag handlers
   const updateIndexFromPosition = useCallback((clientX: number) => {
@@ -234,9 +323,9 @@ export function MeditationTimeline() {
     const rect = timelineTrackRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, x / rect.width));
-    const newIndex = Math.round(percentage * (sortedMeditations.length - 1));
+    const newIndex = Math.round(percentage * (filteredMeditations.length - 1));
     setActiveIndex(newIndex);
-  }, [sortedMeditations.length]);
+  }, [filteredMeditations.length]);
 
   const handleTimelineMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -326,12 +415,12 @@ export function MeditationTimeline() {
   const getYearPositions = () => {
     const positions: { year: number; position: number; index: number }[] = [];
     let currentYear = -1;
-    sortedMeditations.forEach((meditation, index) => {
+    filteredMeditations.forEach((meditation, index) => {
       const year = parseInt(meditation.dateString.split('-')[0]);
       if (year !== currentYear) {
         positions.push({
           year,
-          position: (index / (sortedMeditations.length - 1)) * 100,
+          position: (index / (filteredMeditations.length - 1)) * 100,
           index,
         });
         currentYear = year;
@@ -348,26 +437,102 @@ export function MeditationTimeline() {
   };
 
   const yearPositions = getYearPositions();
-  const progressPercentage = sortedMeditations.length > 1
-    ? (activeIndex / (sortedMeditations.length - 1)) * 100
+  const progressPercentage = filteredMeditations.length > 1
+    ? (activeIndex / (filteredMeditations.length - 1)) * 100
     : 0;
 
-  const activeMeditation: Meditation = sortedMeditations[activeIndex];
+  const activeMeditation: Meditation = filteredMeditations[activeIndex] as Meditation;
 
-  // Show loading state
-  if (isLoading && sortedMeditations.length === 0) {
+  // Show loading state while fetching real data
+  if (isLoading) {
     return (
       <div className="relative w-full min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-muted-foreground">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm font-light tracking-wide">Cargando meditaciones...</p>
+        <style>{`
+          @keyframes mandala-spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+          }
+          @keyframes mandala-spin-reverse {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(-360deg); }
+          }
+          @keyframes breathe {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50%       { opacity: 1;   transform: scale(1.08); }
+          }
+          @keyframes fade-up {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+        <div className="flex flex-col items-center gap-8">
+          {/* Mandala animada */}
+          <div className="relative w-28 h-28" style={{ animation: "breathe 3.5s ease-in-out infinite" }}>
+            {/* Anillo exterior — gira lento */}
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 100 100"
+              fill="none"
+              style={{ animation: "mandala-spin 12s linear infinite", color: "oklch(0.75 0.12 85 / 0.4)" }}
+            >
+              <circle cx="50" cy="50" r="46" stroke="currentColor" strokeWidth="0.8" strokeDasharray="6 4" />
+              {[0,45,90,135,180,225,270,315].map(deg => (
+                <line
+                  key={deg}
+                  x1="50" y1="4"
+                  x2="50" y2="14"
+                  stroke="currentColor" strokeWidth="1"
+                  transform={`rotate(${deg} 50 50)`}
+                />
+              ))}
+            </svg>
+            {/* Anillo medio — gira al revés */}
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 100 100"
+              fill="none"
+              style={{ animation: "mandala-spin-reverse 8s linear infinite", color: "oklch(0.75 0.12 85 / 0.6)" }}
+            >
+              <circle cx="50" cy="50" r="32" stroke="currentColor" strokeWidth="0.8" />
+              {[0,60,120,180,240,300].map(deg => (
+                <circle
+                  key={deg}
+                  cx="50" cy="18" r="3"
+                  stroke="currentColor" strokeWidth="0.6" fill="none"
+                  transform={`rotate(${deg} 50 50)`}
+                />
+              ))}
+            </svg>
+            {/* Logo central */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Logo className="w-12 h-12" />
+            </div>
+          </div>
+
+          <div style={{ animation: "fade-up 1s ease both 0.3s", opacity: 0 }}>
+            <p
+              className="font-serif text-lg tracking-[0.3em] uppercase"
+              style={{ color: "oklch(0.55 0.06 80)" }}
+            >
+              Meditaciones
+            </p>
+            <p
+              className="text-xs tracking-widest text-center mt-1"
+              style={{ color: "oklch(0.65 0.04 80)" }}
+            >
+              Cargando...
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full min-h-screen bg-background overflow-hidden">
+    <div
+      className="relative w-full min-h-screen bg-background overflow-hidden"
+      style={{ opacity: contentVisible ? 1 : 0, transition: "opacity 0.7s ease" }}
+    >
       {/* Reader overlay */}
       {readerOpen && activeMeditation && (
         <MeditationReader
@@ -376,19 +541,14 @@ export function MeditationTimeline() {
           onPrev={() => { scrollToIndex(activeIndex - 1); }}
           onNext={() => { scrollToIndex(activeIndex + 1); }}
           hasPrev={activeIndex > 0}
-          hasNext={activeIndex < sortedMeditations.length - 1}
+          hasNext={activeIndex < filteredMeditations.length - 1}
         />
       )}
 
       {/* Header */}
       <header className="text-center pt-12 pb-8 px-4">
-        <div className="mb-4">
-          <svg className="w-12 h-12 mx-auto text-primary" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1.5" />
-            <circle cx="24" cy="24" r="14" stroke="currentColor" strokeWidth="1" />
-            <path d="M24 10L28 24L24 38L20 24L24 10Z" stroke="currentColor" strokeWidth="1" fill="none" />
-            <path d="M10 24L24 20L38 24L24 28L10 24Z" stroke="currentColor" strokeWidth="1" fill="none" />
-          </svg>
+        <div className="mb-4 flex justify-center">
+          <Logo className="w-12 h-12" />
         </div>
         <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-foreground tracking-wide mb-3">
           MEDITACIONES
@@ -397,6 +557,103 @@ export function MeditationTimeline() {
           Guiadas por Mataji Shaktiananda
         </p>
       </header>
+
+      {/* Search bar */}
+      <div className="flex justify-center px-4 mb-4">
+        <div className="relative w-full max-w-md">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            style={{ color: "oklch(0.55 0.04 80)" }}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+              d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar meditación..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-sm font-light tracking-wide outline-none"
+            style={{
+              background: "oklch(0.97 0.015 80)",
+              border: "1px solid oklch(0.80 0.04 80 / 0.5)",
+              borderRadius: "2px",
+              color: "oklch(0.30 0.03 80)",
+            }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
+              style={{ color: "oklch(0.55 0.04 80)" }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Category filters */}
+      <div className="flex justify-center px-4 mb-6">
+        <div className="flex flex-wrap justify-center gap-2 items-center">
+          {CATEGORIES.map(cat => {
+            const isActive = activeCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(isActive ? null : cat.id)}
+                className="px-4 py-1.5 text-xs font-light tracking-[0.15em] uppercase transition-all duration-200"
+                style={{
+                  borderRadius: "2px",
+                  border: isActive
+                    ? "1px solid oklch(0.40 0.08 80)"
+                    : "1px solid oklch(0.75 0.04 80 / 0.6)",
+                  backgroundColor: isActive
+                    ? "oklch(0.40 0.08 80)"
+                    : "oklch(0.97 0.015 80)",
+                  color: isActive
+                    ? "oklch(0.97 0.015 80)"
+                    : "oklch(0.45 0.05 80)",
+                }}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
+          {activeCategory && (
+            <button
+              onClick={() => setActiveCategory(null)}
+              className="flex items-center justify-center w-6 h-6 text-xs transition-opacity duration-200 hover:opacity-70"
+              style={{
+                border: "1px solid oklch(0.60 0.05 80 / 0.5)",
+                borderRadius: "50%",
+                color: "oklch(0.45 0.05 80)",
+                backgroundColor: "oklch(0.97 0.015 80)",
+              }}
+              title="Quitar filtro"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* No results message */}
+      {filteredMeditations.length === 0 && (
+        <div className="text-center py-12">
+          <p className="font-serif text-lg" style={{ color: "oklch(0.55 0.04 80)" }}>
+            No se encontraron meditaciones
+          </p>
+          <button
+            onClick={() => { setActiveCategory(null); setSearchQuery(""); }}
+            className="mt-3 text-xs tracking-widest uppercase underline"
+            style={{ color: "oklch(0.50 0.06 80)" }}
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      )}
 
       {/* Cards Carousel — TimeMachine vertical stack */}
       <div
@@ -525,7 +782,7 @@ export function MeditationTimeline() {
           <button
             onClick={() => {
               if (serendipiaAnimating) return;
-              const targetIndex = Math.floor(Math.random() * sortedMeditations.length);
+              const targetIndex = Math.floor(Math.random() * filteredMeditations.length);
               setSerendipiaAnimating(true);
               
               // Animate through cards to reach target
@@ -543,7 +800,7 @@ export function MeditationTimeline() {
                   return;
                 }
                 const nextIndex = Math.round(activeIndex + (direction * stepSize * currentStep));
-                setActiveIndex(Math.max(0, Math.min(nextIndex, sortedMeditations.length - 1)));
+                setActiveIndex(Math.max(0, Math.min(nextIndex, filteredMeditations.length - 1)));
                 setTimeout(animateStep, 80 - (currentStep * 2)); // Speed up gradually
               };
               
@@ -578,12 +835,12 @@ export function MeditationTimeline() {
         <div className="relative" style={{ height: "100px" }}>
           {/* Tick marks — rendered as absolute positioned bars anchored to bottom */}
           <div className="absolute inset-x-0" style={{ bottom: "28px", height: "56px" }}>
-            {sortedMeditations.map((meditation, i) => {
+            {filteredMeditations.map((meditation, i) => {
               const isYearStart = yearPositions.some((yp) => yp.index === i);
               const isActive = i === activeIndex;
               const isHovered = i === hoveredTickIndex;
-              const leftPct = sortedMeditations.length > 1
-                ? (i / (sortedMeditations.length - 1)) * 100
+              const leftPct = filteredMeditations.length > 1
+                ? (i / (filteredMeditations.length - 1)) * 100
                 : 0;
 
               // Base heights in px
@@ -747,7 +1004,7 @@ export function MeditationTimeline() {
                 const tooClose = shown.some(s => Math.abs(s.position - yp.position) < MIN_GAP_PCT);
                 if (!tooClose) shown.push(yp);
               }
-              const activeYear = parseInt(sortedMeditations[activeIndex]?.dateString?.split('-')[0]);
+              const activeYear = parseInt(filteredMeditations[activeIndex]?.dateString?.split('-')[0]);
               return shown.map(({ year, position, index }) => (
                 <button
                   key={year}

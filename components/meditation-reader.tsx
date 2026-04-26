@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { X, ChevronLeft, ChevronRight, Minus, Plus, AlignLeft } from "lucide-react";
+import { Logo } from "./logo";
 import type { Meditation } from "@/lib/meditations-data";
 import { formatDateDisplay } from "@/lib/meditations-data";
 
@@ -393,13 +394,7 @@ export function MeditationReader({
               {/* End ornament */}
               {hasRealContent && (
                 <div className="flex items-center justify-center mt-12">
-                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                    <circle cx="24" cy="24" r="18" stroke="oklch(0.75 0.12 85 / 0.4)" strokeWidth="0.75" />
-                    <circle cx="24" cy="24" r="10" stroke="oklch(0.75 0.12 85 / 0.4)" strokeWidth="0.5" />
-                    <path d="M24 14L26 24L24 34L22 24L24 14Z" stroke="oklch(0.75 0.12 85 / 0.6)" strokeWidth="0.75" fill="none" />
-                    <path d="M14 24L24 22L34 24L24 26L14 24Z" stroke="oklch(0.75 0.12 85 / 0.6)" strokeWidth="0.75" fill="none" />
-                    <circle cx="24" cy="24" r="2" fill="oklch(0.75 0.12 85 / 0.5)" />
-                  </svg>
+                  <Logo className="w-12 h-12 opacity-60" />
                 </div>
               )}
             </article>
