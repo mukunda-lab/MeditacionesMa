@@ -4,8 +4,9 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { meditations as fallbackMeditations, type Meditation, formatDateDisplay } from "@/lib/meditations-data";
 import { MeditationReader } from "./meditation-reader";
 import { MeditationCard } from "./meditation-card";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Logo } from "./logo";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // API meditation type
 interface APIMeditation {
@@ -55,6 +56,8 @@ export function MeditationTimeline() {
   const timelineTrackRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
   const lastUpdateTime = useRef(Date.now());
+  const mobileTouchStartY = useRef(0);
+  const isMobile = useIsMobile();
 
   // Fetch meditations directly from WordPress REST API (client-side to bypass server restrictions)
   useEffect(() => {
@@ -582,20 +585,20 @@ export function MeditationTimeline() {
       )}
 
       {/* Header */}
-      <header className="text-center pt-12 pb-8 px-4">
-        <div className="mb-4 flex justify-center">
-          <Logo className="w-12 h-12" />
+      <header className="text-center pt-6 md:pt-12 pb-4 md:pb-8 px-6">
+        <div className="mb-2 md:mb-4 flex justify-center">
+          <Logo className="w-10 h-10 md:w-12 md:h-12" />
         </div>
-        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-foreground tracking-wide mb-3">
+        <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl font-semibold text-foreground tracking-wide mb-1 md:mb-3">
           MEDITACIONES
         </h1>
-        <p className="text-muted-foreground text-lg md:text-xl font-light">
+        <p className="text-muted-foreground text-base md:text-xl font-light">
           Guiadas por Mataji Shaktiananda
         </p>
       </header>
 
       {/* Search bar */}
-      <div className="flex justify-center px-4 mb-4">
+      <div className="flex justify-center px-5 md:px-4 mb-3 md:mb-4">
         <div className="relative w-full max-w-md">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
@@ -631,7 +634,7 @@ export function MeditationTimeline() {
       </div>
 
       {/* Category filters */}
-      <div className="flex justify-center px-4 mb-6">
+      <div className="flex justify-center px-5 md:px-4 mb-3 md:mb-6">
         <div className="flex flex-wrap justify-center gap-2 items-center">
           {CATEGORIES.map(cat => {
             const isActive = activeCategory === cat.id;
@@ -692,95 +695,152 @@ export function MeditationTimeline() {
       )}
 
       {/* Cards Carousel */}
-      <div className="relative flex-1 flex items-center justify-center py-8">
+      {isMobile ? (
+        /* ── MOBILE: vertical 3D stacking ── */
         <div
           ref={cardsContainerRef}
-          className="relative w-full max-w-5xl select-none"
-          style={{
-            cursor: isDragging ? "grabbing" : "grab",
-            paddingTop: "40px",
-            paddingBottom: "40px",
+          className="relative flex items-center justify-center mx-5 select-none"
+          style={{ height: "320px" }}
+          onTouchStart={(e) => { mobileTouchStartY.current = e.touches[0].clientY; }}
+          onTouchEnd={(e) => {
+            const delta = mobileTouchStartY.current - e.changedTouches[0].clientY;
+            if (Math.abs(delta) > 40) { if (delta > 0) handleNext(); else handlePrev(); }
           }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
         >
           <button
             onClick={handlePrev}
             disabled={activeIndex === 0}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
+            className="absolute top-1 left-1/2 -translate-x-1/2 z-20 p-2 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
             aria-label="Anterior meditación"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronUp className="w-5 h-5" />
           </button>
 
           <button
             onClick={handleNext}
             disabled={activeIndex === filteredMeditations.length - 1}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
+            className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20 p-2 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
             aria-label="Siguiente meditación"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronDown className="w-5 h-5" />
           </button>
 
           <div
             className="relative w-full flex items-center justify-center"
-            style={{ perspective: "1200px", transformStyle: "preserve-3d", height: "340px" }}
+            style={{ perspective: "900px", transformStyle: "preserve-3d", height: "260px" }}
           >
             {filteredMeditations.map((meditation, index) => {
               const offset = index - activeIndex;
-              const absOffset = Math.abs(offset);
-              if (absOffset > 4) return null;
-
-              const translateX = offset * 90;
-              const translateZ = -absOffset * 80;
-              const rotateY = offset * -10;
-              const scale = 1 - absOffset * 0.08;
-              const opacity = 1 - absOffset * 0.22;
-              const zIndex = 10 - absOffset;
-              const isActive = index === activeIndex;
-
+              if (offset < 0 || offset > 3) return null;
+              const scale = Math.max(0.75, 1 - offset * 0.08);
+              const translateY = offset * -28;
+              const translateZ = -offset * 60;
+              const rotateX = offset * 4;
+              const opacity = offset === 0 ? 1 : Math.max(0, 1 - offset * 0.3);
+              const isActive = offset === 0;
               return (
                 <div
                   key={meditation.id}
                   className="absolute"
                   style={{
-                    transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
-                    opacity: Math.max(0, opacity),
-                    zIndex,
+                    transform: `translateY(${translateY}px) translateZ(${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`,
+                    opacity,
+                    zIndex: 10 - offset,
                     cursor: isActive ? "pointer" : "default",
-                    transition: "transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.45s ease",
+                    transition: "transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease",
                     willChange: "transform, opacity",
                   }}
-                  onClick={() => {
-                    if (isActive && !isDragging) {
-                      setReaderOpen(true);
-                    } else {
-                      setActiveIndex(index);
-                    }
-                  }}
+                  onClick={() => { if (isActive) setReaderOpen(true); else scrollToIndex(index); }}
                 >
                   <MeditationCard
                     meditation={meditation}
                     isActive={isActive}
-                    tilt={cardTilts[index] ?? 0}
-                    onTranslationClick={(slug) => {
-                      window.open(`https://shaktianandama.com/${slug}/`, "_blank");
-                    }}
+                    tilt={0}
+                    onTranslationClick={(slug) => window.open(`https://shaktianandama.com/${slug}/`, "_blank")}
                   />
                 </div>
               );
             })}
           </div>
         </div>
-      </div>
+      ) : (
+        /* ── DESKTOP: horizontal 3D carousel ── */
+        <div className="relative flex-1 flex items-center justify-center py-8">
+          <div
+            ref={cardsContainerRef}
+            className="relative w-full max-w-5xl select-none"
+            style={{ cursor: isDragging ? "grabbing" : "grab", paddingTop: "40px", paddingBottom: "40px" }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <button
+              onClick={handlePrev}
+              disabled={activeIndex === 0}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
+              aria-label="Anterior meditación"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            <button
+              onClick={handleNext}
+              disabled={activeIndex === filteredMeditations.length - 1}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
+              aria-label="Siguiente meditación"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+
+            <div
+              className="relative w-full flex items-center justify-center"
+              style={{ perspective: "1200px", transformStyle: "preserve-3d", height: "340px" }}
+            >
+              {filteredMeditations.map((meditation, index) => {
+                const offset = index - activeIndex;
+                const absOffset = Math.abs(offset);
+                if (absOffset > 4) return null;
+                const translateX = offset * 90;
+                const translateZ = -absOffset * 80;
+                const rotateY = offset * -10;
+                const scale = 1 - absOffset * 0.08;
+                const opacity = 1 - absOffset * 0.22;
+                const zIndex = 10 - absOffset;
+                const isActive = index === activeIndex;
+                return (
+                  <div
+                    key={meditation.id}
+                    className="absolute"
+                    style={{
+                      transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
+                      opacity: Math.max(0, opacity),
+                      zIndex,
+                      cursor: isActive ? "pointer" : "default",
+                      transition: "transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.45s ease",
+                      willChange: "transform, opacity",
+                    }}
+                    onClick={() => { if (isActive && !isDragging) setReaderOpen(true); else setActiveIndex(index); }}
+                  >
+                    <MeditationCard
+                      meditation={meditation}
+                      isActive={isActive}
+                      tilt={cardTilts[index] ?? 0}
+                      onTranslationClick={(slug) => window.open(`https://shaktianandama.com/${slug}/`, "_blank")}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Click hint */}
-      <div className="text-center -mt-4 mb-6">
+      <div className="text-center mt-2 md:-mt-4 mb-3 md:mb-6">
         <p className="text-xs text-muted-foreground tracking-widest uppercase font-light">
           Clic en la tarjeta para leer
         </p>
