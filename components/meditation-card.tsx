@@ -212,24 +212,26 @@ export function MeditationCard({ meditation, isActive, tilt = 0, onTranslationCl
         )}
       </div>
 
-      {/* Title and date — below image */}
+      {/* Title and date — below image, solo en tarjeta activa */}
+      {isActive && (
       <div className="w-full pt-2.5 pb-1 text-center px-1">
         <h2
           className="font-serif font-semibold uppercase tracking-wider text-balance leading-tight mb-1"
           style={{
-            fontSize: isActive ? "clamp(0.85rem, 2vw, 1rem)" : "clamp(0.7rem, 1.8vw, 0.85rem)",
-            color: isActive ? "oklch(0.30 0.03 80)" : "oklch(0.45 0.03 80)",
+            fontSize: "clamp(0.85rem, 2vw, 1rem)",
+            color: "oklch(0.30 0.03 80)",
           }}
         >
           {meditation.title}
         </h2>
         <p
           className="text-xs font-light tracking-widest"
-          style={{ color: isActive ? "oklch(0.50 0.06 80)" : "oklch(0.60 0.04 80 / 0.7)" }}
+          style={{ color: "oklch(0.50 0.06 80)" }}
         >
           {formatDateDisplay(meditation.dateString)}
         </p>
       </div>
+      )}
 
       {/* Translation buttons — below active card */}
       {translations.length > 0 && isActive && (
