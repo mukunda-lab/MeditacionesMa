@@ -850,7 +850,7 @@ export function MeditationTimeline() {
       </div>
 
       {/* Timeline */}
-      <div ref={timelineRef} className="relative px-8 md:px-16 pb-16">
+      <div ref={timelineRef} className="relative px-6 md:px-10 pb-8 max-w-2xl mx-auto">
 
         {/* Serendipia button */}
         <div className="flex justify-center mb-6">
@@ -1102,6 +1102,28 @@ export function MeditationTimeline() {
               ));
             })()}
           </div>
+        </div>
+      </div>
+
+      {/* Spotify Podcast */}
+      <div className="flex flex-col items-center px-5 pb-16 pt-4">
+        <p
+          className="text-xs tracking-[0.25em] uppercase font-light mb-4"
+          style={{ color: "oklch(0.55 0.04 80)" }}
+        >
+          Escuchar en Spotify
+        </p>
+        <div className="w-full max-w-xl">
+          <iframe
+            style={{ borderRadius: "12px" }}
+            src="https://open.spotify.com/embed/show/5zDFfqLFzHcOtTLucM77yR?utm_source=generator"
+            width="100%"
+            height="352"
+            frameBorder={0}
+            allowFullScreen
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+          />
         </div>
       </div>
     </div>
