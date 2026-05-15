@@ -154,18 +154,22 @@ export function MeditationCard({ meditation, isActive, tilt = 0, onTranslationCl
             ? `0 2px 0 oklch(0.60 0.04 240 / 0.6),
                0 4px 0 oklch(0.50 0.03 240 / 0.4),
                0 6px 0 oklch(0.40 0.02 240 / 0.25),
-               0 16px 40px oklch(0 0 0 / 0.55),
-               0 32px 64px oklch(0 0 0 / 0.25),
+               0 16px 48px oklch(0 0 0 / 0.5),
+               0 32px 80px oklch(0 0 0 / 0.22),
+               0 0 60px oklch(0.75 0.12 85 / 0.08),
                inset 0 1px 0 oklch(1 0 0 / 0.12)`
             : `0 1px 0 oklch(0.50 0.03 240 / 0.4),
                0 2px 0 oklch(0.40 0.02 240 / 0.25),
                0 3px 0 oklch(0.35 0.02 240 / 0.15),
-               0 8px 20px oklch(0 0 0 / 0.35),
+               0 8px 24px oklch(0 0 0 / 0.28),
+               0 0 40px oklch(0 0 0 / 0.1),
                inset 0 1px 0 oklch(1 0 0 / 0.06)`,
           rotate: isActive ? "0deg" : `${tilt}deg`,
           outline: isActive
             ? "1px solid oklch(0.75 0.12 85 / 0.35)"
             : "1px solid oklch(1 0 0 / 0.05)",
+          maskImage: "radial-gradient(ellipse 92% 88% at 50% 50%, black 38%, rgba(0,0,0,0.55) 68%, transparent 100%)",
+          WebkitMaskImage: "radial-gradient(ellipse 92% 88% at 50% 50%, black 38%, rgba(0,0,0,0.55) 68%, transparent 100%)",
           transition: "width 0.5s ease, height 0.5s ease, box-shadow 0.5s ease, rotate 0.5s ease, outline 0.5s ease",
         }}
       >
