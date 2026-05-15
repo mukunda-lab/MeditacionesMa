@@ -701,52 +701,45 @@ export function MeditationTimeline() {
       {isMobile ? (
         /* ── MOBILE: vertical 3D stacking ── */
         <div
-          ref={cardsContainerRef}
-          className="relative flex items-center justify-center mx-5 select-none"
-          style={{ height: "320px" }}
+          className="flex flex-col items-center px-4 py-2 select-none"
           onTouchStart={(e) => { mobileTouchStartY.current = e.touches[0].clientY; }}
           onTouchEnd={(e) => {
             const delta = mobileTouchStartY.current - e.changedTouches[0].clientY;
-            if (Math.abs(delta) > 40) { if (delta > 0) handleNext(); else handlePrev(); }
+            if (Math.abs(delta) > 35) { if (delta > 0) handleNext(); else handlePrev(); }
           }}
         >
+          {/* Prev arrow */}
           <button
             onClick={handlePrev}
             disabled={activeIndex === 0}
-            className="absolute top-1 left-1/2 -translate-x-1/2 z-20 p-2 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
+            className="mb-5 p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-25 transition-all duration-300 shadow-md"
             aria-label="Anterior meditación"
           >
             <ChevronUp className="w-5 h-5" />
           </button>
 
-          <button
-            onClick={handleNext}
-            disabled={activeIndex === filteredMeditations.length - 1}
-            className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20 p-2 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-30 hover:bg-card transition-all duration-300 shadow-lg"
-            aria-label="Siguiente meditación"
-          >
-            <ChevronDown className="w-5 h-5" />
-          </button>
-
+          {/* 3D card stack */}
           <div
-            className="relative w-full flex items-center justify-center"
-            style={{ perspective: "900px", transformStyle: "preserve-3d", height: "260px" }}
+            ref={cardsContainerRef}
+            className="relative w-full"
+            style={{ height: "400px", perspective: "1000px" }}
           >
             {filteredMeditations.map((meditation, index) => {
               const offset = index - activeIndex;
               if (offset < 0 || offset > 3) return null;
-              const scale = Math.max(0.75, 1 - offset * 0.08);
-              const translateY = offset * -28;
-              const translateZ = -offset * 60;
-              const rotateX = offset * 4;
-              const opacity = offset === 0 ? 1 : Math.max(0, 1 - offset * 0.3);
+              const scale = 1 - offset * 0.07;
+              const translateY = offset * 50;
+              const translateZ = -offset * 70;
+              const opacity = offset === 0 ? 1 : Math.max(0.35, 1 - offset * 0.27);
               const isActive = offset === 0;
               return (
                 <div
                   key={meditation.id}
-                  className="absolute"
+                  className="absolute left-1/2"
                   style={{
-                    transform: `translateY(${translateY}px) translateZ(${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`,
+                    top: 0,
+                    transform: `translateX(-50%) translateY(${translateY}px) translateZ(${translateZ}px) scale(${scale})`,
+                    transformOrigin: "center top",
                     opacity,
                     zIndex: 10 - offset,
                     cursor: isActive ? "pointer" : "default",
@@ -764,6 +757,24 @@ export function MeditationTimeline() {
                 </div>
               );
             })}
+          </div>
+
+          {/* Counter + next arrow */}
+          <div className="mt-5 flex items-center gap-5">
+            <span
+              className="text-xs font-light tracking-widest tabular-nums"
+              style={{ color: "oklch(0.58 0.04 80)" }}
+            >
+              {activeIndex + 1} / {filteredMeditations.length}
+            </span>
+            <button
+              onClick={handleNext}
+              disabled={activeIndex === filteredMeditations.length - 1}
+              className="p-3 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-25 transition-all duration-300 shadow-md"
+              aria-label="Siguiente meditación"
+            >
+              <ChevronDown className="w-5 h-5" />
+            </button>
           </div>
         </div>
       ) : (
