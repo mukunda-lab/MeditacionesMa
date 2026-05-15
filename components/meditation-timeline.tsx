@@ -62,16 +62,18 @@ export function MeditationTimeline() {
   // Fetch meditations directly from WordPress REST API (client-side to bypass server restrictions)
   useEffect(() => {
     const fetchMeditations = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       try {
         // Discover the meditation category ID and page-1 posts in parallel
         const [catRes, firstRes] = await Promise.all([
           fetch(
             "https://shaktianandama.com/wp-json/wp/v2/categories?per_page=100",
-            { mode: "cors" }
+            { mode: "cors", signal: controller.signal }
           ),
           fetch(
             "https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=1&_embed=wp:featuredmedia,wp:term",
-            { mode: "cors" }
+            { mode: "cors", signal: controller.signal }
           ),
         ]);
 
@@ -98,7 +100,7 @@ export function MeditationTimeline() {
           const catParam = `&categories=${meditationCategoryId}`;
           const filteredFirst = await fetch(
             `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=1&_embed=wp:featuredmedia,wp:term${catParam}`,
-            { mode: "cors" }
+            { mode: "cors", signal: controller.signal }
           );
           if (!filteredFirst.ok) throw new Error(`API error: ${filteredFirst.status}`);
           const filteredFirstPage = await filteredFirst.json();
@@ -111,7 +113,7 @@ export function MeditationTimeline() {
               remaining.map(page =>
                 fetch(
                   `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia,wp:term${catParam}`,
-                  { mode: "cors" }
+                  { mode: "cors", signal: controller.signal }
                 ).then(r => r.json())
               )
             );
@@ -126,7 +128,7 @@ export function MeditationTimeline() {
               remaining.map(page =>
                 fetch(
                   `https://shaktianandama.com/wp-json/wp/v2/posts?per_page=100&page=${page}&_embed=wp:featuredmedia,wp:term`,
-                  { mode: "cors" }
+                  { mode: "cors", signal: controller.signal }
                 ).then(r => r.json())
               )
             );
@@ -208,6 +210,7 @@ export function MeditationTimeline() {
           // Will use fallback static data
         }
       } finally {
+        clearTimeout(timeoutId);
         setIsLoading(false);
       }
     };
