@@ -4,10 +4,10 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { meditations as fallbackMeditations, type Meditation, formatDateDisplay } from "@/lib/meditations-data";
 import { MeditationReader } from "./meditation-reader";
 import { MeditationCard } from "./meditation-card";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Logo } from "./logo";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { motion } from "motion/react";
 
 // API meditation type
 interface APIMeditation {
@@ -39,52 +39,6 @@ const CATEGORIES = [
   { id: "devocion",   label: "Devoción",    keywords: ["devoción", "oración", "gratitud", "gracia", "divino", "guru", "fe", "bhakti"] },
 ] as const;
 
-// Mobile scroll-stack card — needs its own component so useTransform runs per card
-function MobileStackCard({
-  i,
-  n,
-  meditation,
-  progress,
-  isActive,
-  onOpen,
-  onTranslationClick,
-}: {
-  i: number;
-  n: number;
-  meditation: Meditation & { translations?: any[] };
-  progress: MotionValue<number>;
-  isActive: boolean;
-  onOpen: () => void;
-  onTranslationClick: (slug: string) => void;
-}) {
-  const targetScale = Math.max(0.72, 1 - (n - 1 - i) * 0.02);
-  const range: [number, number] = [i / Math.max(n - 1, 1), 1];
-  const scale = useTransform(progress, range, [1, targetScale]);
-
-  return (
-    <div style={{ height: "50svh" }}>
-      <motion.div
-        className="sticky top-0 flex items-center justify-center"
-        style={{
-          height: "50svh",
-          scale,
-          zIndex: i + 1,
-          transformOrigin: "50% 20%",
-          y: i * 8,
-          cursor: isActive ? "pointer" : "default",
-        }}
-        onClick={() => { if (isActive) onOpen(); }}
-      >
-        <MeditationCard
-          meditation={meditation}
-          isActive={isActive}
-          tilt={0}
-          onTranslationClick={onTranslationClick}
-        />
-      </motion.div>
-    </div>
-  );
-}
 
 export function MeditationTimeline() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -103,24 +57,9 @@ export function MeditationTimeline() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineTrackRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
-  const mobileCardsRef = useRef<HTMLDivElement>(null);
   const lastUpdateTime = useRef(Date.now());
   const mobileTouchStartY = useRef(0);
   const isMobile = useIsMobile();
-
-  const { scrollYProgress: mobileProgress } = useScroll({
-    target: mobileCardsRef,
-    offset: ["start start", "end end"],
-  });
-
-  // Sync activeIndex from mobile scroll position
-  useEffect(() => {
-    if (!isMobile) return;
-    return mobileProgress.on("change", (v) => {
-      const idx = Math.round(v * (filteredMeditations.length - 1));
-      setActiveIndex(idx);
-    });
-  });
 
 
   // Fetch meditations directly from WordPress REST API (client-side to bypass server restrictions)
@@ -763,20 +702,71 @@ export function MeditationTimeline() {
 
       {/* Cards Carousel */}
       {isMobile ? (
-        /* ── MOBILE: scroll-based stacking (reference Oliver Larose) ── */
-        <div ref={mobileCardsRef} className="select-none">
-          {filteredMeditations.map((meditation, i) => (
-            <MobileStackCard
-              key={meditation.id}
-              i={i}
-              n={filteredMeditations.length}
-              meditation={meditation}
-              progress={mobileProgress}
-              isActive={i === activeIndex}
-              onOpen={() => { setActiveIndex(i); setReaderOpen(true); }}
-              onTranslationClick={(slug) => window.open(`https://shaktianandama.com/${slug}/`, "_blank")}
-            />
-          ))}
+        /* ── MOBILE: stacking deck with motion.div animate ── */
+        <div
+          className="flex flex-col items-center select-none"
+          onTouchStart={(e) => { mobileTouchStartY.current = e.touches[0].clientY; }}
+          onTouchEnd={(e) => {
+            const delta = mobileTouchStartY.current - e.changedTouches[0].clientY;
+            if (Math.abs(delta) > 40) { if (delta > 0) handleNext(); else handlePrev(); }
+          }}
+        >
+          {/* Up arrow */}
+          <button
+            onClick={handlePrev}
+            disabled={activeIndex === 0}
+            className="mb-4 p-2.5 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-20 transition-all shadow-md"
+          >
+            <ChevronUp className="w-5 h-5" />
+          </button>
+
+          {/* Card stack */}
+          <div
+            ref={cardsContainerRef}
+            className="relative flex justify-center"
+            style={{ height: "320px", width: "100%" }}
+          >
+            {filteredMeditations.map((meditation, index) => {
+              // depth: 0 = front (active), 1 = one behind, 2 = two behind...
+              const depth = activeIndex - index;
+              if (depth < 0 || depth > 3) return null;
+              const isActive = depth === 0;
+              const scale = 1 - depth * 0.06;
+              const y = depth * 18;
+              const opacity = depth === 0 ? 1 : Math.max(0.45, 1 - depth * 0.2);
+              return (
+                <motion.div
+                  key={meditation.id}
+                  className="absolute"
+                  animate={{ scale, y, opacity }}
+                  transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  style={{ zIndex: 10 - depth, transformOrigin: "50% 0%", cursor: isActive ? "pointer" : "default" }}
+                  onClick={() => { if (isActive) setReaderOpen(true); else scrollToIndex(index); }}
+                >
+                  <MeditationCard
+                    meditation={meditation}
+                    isActive={isActive}
+                    tilt={0}
+                    onTranslationClick={(slug) => window.open(`https://shaktianandama.com/${slug}/`, "_blank")}
+                  />
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Counter + down arrow */}
+          <div className="mt-4 flex items-center gap-4">
+            <span className="text-xs font-light tracking-widest tabular-nums" style={{ color: "oklch(0.58 0.04 80)" }}>
+              {activeIndex + 1} / {filteredMeditations.length}
+            </span>
+            <button
+              onClick={handleNext}
+              disabled={activeIndex === filteredMeditations.length - 1}
+              className="p-2.5 rounded-full bg-card/80 backdrop-blur-sm text-card-foreground disabled:opacity-20 transition-all shadow-md"
+            >
+              <ChevronDown className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       ) : (
         /* ── DESKTOP: horizontal 3D carousel ── */
@@ -872,13 +862,9 @@ export function MeditationTimeline() {
               const targetIndex = Math.floor(Math.random() * filteredMeditations.length);
               setSerendipiaAnimating(true);
 
-              if (isMobile && mobileCardsRef.current) {
-                // On mobile: scroll the stack to the target card
-                const slotHeight = window.innerHeight * 0.5; // 50svh
-                const sectionTop = mobileCardsRef.current.getBoundingClientRect().top + window.scrollY;
-                window.scrollTo({ top: sectionTop + targetIndex * slotHeight, behavior: "smooth" });
+              if (isMobile) {
                 setActiveIndex(targetIndex);
-                setTimeout(() => setSerendipiaAnimating(false), 600);
+                setTimeout(() => setSerendipiaAnimating(false), 400);
               } else {
                 // Desktop: animate through cards
                 const distance = Math.abs(targetIndex - activeIndex);
